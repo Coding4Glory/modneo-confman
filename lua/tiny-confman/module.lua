@@ -63,7 +63,7 @@ M.enable = function(opts)
     local dst_file = vim.fs.joinpath(get_plugin_dir(M.config), M.config.link_dir)
     if uv.fs_stat(dst_file) then
         if not opts.bang then
-            vim.notify('Plugin already enabled', vim.log.levels.INFO)
+            print('Plugin already enabled', vim.log.levels.INFO)
             return
         end
         uv.fs_unlink(dst_file)
@@ -87,8 +87,10 @@ end
 ---@type function
 ---call on require to apply settings
 ---@param settings TinyConfmanSettings the settings to apply
----@return ConfmanModule
+---@return TinyConfmanModule
 M.init = function(settings)
     M.config = settings or require('tiny-confman.config').settings
     return M
 end
+
+return M
