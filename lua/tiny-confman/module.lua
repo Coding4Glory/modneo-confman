@@ -28,7 +28,8 @@ local function get_plugins(settings, category)
         if category ~= nil and category ~= folder then
             goto continue
         end
-        plugins[folder] = get_files(vim.fs.joinpath(plugin_path, category), '/*.lua')
+        local cat_key = vim.fs.basename(folder)
+        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), '/*.lua')
         ::continue::
     end
     return plugins
