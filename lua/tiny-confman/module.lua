@@ -19,7 +19,7 @@ local function get_files(basepath, filter)
 end
 
 ---@param settings TinyConfmanSettings
----@param[opt=nil] category sting? Optional: the category to show
+---@param category string? Optional: the category to show
 ---@return table
 local function get_plugins(settings, category)
     local plugin_path = get_plugin_dir(settings)
@@ -28,7 +28,7 @@ local function get_plugins(settings, category)
         if category ~= nil and category ~= folder then
             goto continue
         end
-        plugins[category] = get_files(vim.fs.joinpath(plugin_path, category), '/*.lua')
+        plugins[folder] = get_files(vim.fs.joinpath(plugin_path, category), '/*.lua')
         ::continue::
     end
     return plugins
