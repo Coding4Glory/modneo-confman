@@ -1,6 +1,10 @@
 ---@class TinyConfmanModule
 local M = {}
 
+---@type TinyConfmanSettings
+---@private
+M.config = {}
+
 ---@param settings TinyConfmanSettings
 ---@return string
 local function get_plugin_dir(settings)
@@ -11,10 +15,11 @@ end
 ---If no filter is given only files or directories not containing dots will be returned.
 ---@param basepath any
 ---@param filter any
----@return string[]
-local function get_files(basepath, filter)
-    filter = filter or '/*[^.]'
-    local path = basepath .. filter
+---@return table
+local function get_files(basepath,filter)
+    filter = filter or '*[^.]'
+    print(filter)
+    local path = basepath .. M.config.dir_separator ..  filter
     return vim.split(vim.fn.glob(path), '\n', { trimempty = true })
 end
 
@@ -29,15 +34,11 @@ local function get_plugins(settings, category)
             goto continue
         end
         local cat_key = vim.fs.basename(folder)
-        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), '/*.lua')
+        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), '*.lua')
         ::continue::
     end
     return plugins
 end
-
----@type TinyConfmanSettings
----@private
-M.config = {}
 
 ---@type function
 ---lists all available plugins
@@ -58,13 +59,13 @@ M.enable = function(opts)
     local src_file = vim.fs.joinpath(get_plugin_dir(M.config), opts.args)
     local uv = (vim.uv or vim.loop)
     if not uv.fs_stat(src_file) then
-        vim.api.nvim_err_writeln('Plugin file for ' .. name .. ' not found')
+        print('Plugin file for ' .. name .. ' not found')
         return
     end
     local dst_file = vim.fs.joinpath(get_plugin_dir(M.config), M.config.link_dir)
     if uv.fs_stat(dst_file) then
         if not opts.bang then
-            print('Plugin already enabled', vim.log.levels.INFO)
+            print('!! Plugin already enabled call TinyEnPlug! to recreate link')
             return
         end
         uv.fs_unlink(dst_file)

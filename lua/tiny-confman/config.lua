@@ -9,6 +9,7 @@ local M = {}
 local defaults = {
     plugin_dir = 'plugins',
     link_dir = 'enabled',
+    dir_separator = ((vim.uv or vim.loop).os_uname() == 'Linux' and '/' or '\\')
 }
 
 ---@type TinyConfmanSettings
