@@ -1,4 +1,4 @@
----@class TinyConfmanModule
+---@class TinyConfmanCore
 local M = {}
 
 ---@type TinyConfmanSettings
@@ -11,15 +11,15 @@ local function get_plugin_dir(settings)
     return vim.fs.joinpath(vim.fn.stdpath('config'), 'lua', settings.plugin_dir)
 end
 
----Gets the files in base path maching the given filter.
+---Gets the files in basepath maching the given filter.
 ---If no filter is given only files or directories not containing dots will be returned.
 ---@param basepath any
 ---@param filter any
 ---@return table
-local function get_files(basepath,filter)
+local function get_files(basepath, filter)
     filter = filter or '*[^.]'
     print(filter)
-    local path = basepath .. M.config.dir_separator ..  filter
+    local path = basepath .. M.config.dir_separator .. filter
     return vim.split(vim.fn.glob(path), '\n', { trimempty = true })
 end
 
@@ -52,26 +52,31 @@ M.list_enabled = function()
     print(vim.inspect(get_plugins(M.config, M.config.link_dir)))
 end
 
----@type function
+
 ---enables the given plugin
+---@type function
 ---@param opts vim.api.keyset.create_user_command.command_args a category/name combination
 M.enable = function(opts)
-    local src_file = vim.fs.joinpath(get_plugin_dir(M.config), opts.args)
     local uv = (vim.uv or vim.loop)
-    if not uv.fs_stat(src_file) then
-        print('Plugin file for ' .. name .. ' not found')
-        return
-    end
-    local dst_file = vim.fs.joinpath(get_plugin_dir(M.config), M.config.link_dir)
-    if uv.fs_stat(dst_file) then
-        if not opts.bang then
-            print('!! Plugin already enabled call TinyEnPlug! to recreate link')
+    for cat, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
+        local modpath = vim.fs.joinpath(get_plugin_dir(M.config), cat, mod)
+        local src_file = vim.fs.joinpath(get_plugin_dir(M.config), opts.args)
+
+        if not uv.fs_stat(src_file) then
+            print('Plugin file for ' .. opts.args .. ' not found')
             return
         end
-        uv.fs_unlink(dst_file)
-    end
+        local dst_file = vim.fs.joinpath(get_plugin_dir(M.config), M.config.link_dir)
+        if uv.fs_stat(dst_file) then
+            if not opts.bang then
+                print('!! Plugin already enabled call TinyEnPlug! to recreate link')
+                return
+            end
+            uv.fs_unlink(dst_file)
+        end
 
-    uv.fs_symlink(src_file, dst_file)
+        uv.fs_symlink(src_file, dst_file)
+    end
 end
 
 ---@type function
@@ -89,7 +94,7 @@ end
 ---@type function
 ---call on require to apply settings
 ---@param settings TinyConfmanSettings the settings to apply
----@return TinyConfmanModule
+---@return TinyConfmanCore
 M.init = function(settings)
     M.config = settings or require('tiny-confman.config').settings
     return M

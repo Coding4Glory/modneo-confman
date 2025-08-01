@@ -47,14 +47,14 @@ Folders will be seen as categories, further hierarchies are currently not suppor
 ### Commands ⌨
 
 ```vimdoc
-                                                    *:TinyEnPlug* *TinyEnPlug*
-:TinyEnPlug {category/module}          enables a module.
+                                                              *:PlgEn* *PlgEn*
+:PlgEn {category/module}               enables a module.
 
-                                                  *:TinyDisPlug* *TinyDisPlug*
-:TinyDisPlug {category/module}         disables a module.
+                                                            *:PlgDis* *PlgDis*
+:PlgDis {category/module}              disables a module.
 
-                                                    *:TinyLsPlug* *TinyLsPlug*
-:TinyLsPlug                            list all categories and modules
+                                                              *:PlgLs* *PlgLs*
+:PlgLs                                 list all categories and modules
 ```
 
 ## Help ❔

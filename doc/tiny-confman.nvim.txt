@@ -1,4 +1,4 @@
-*tiny-confman.nvim.txt*        For neovim-0.12       Last change: 2025 July 20
+*tiny-confman.nvim.txt*       For neovim-0.12      Last change: 2025 August 01
 
 ==============================================================================
 Table of Contents                        *tiny-confman.nvim-table-of-contents*
@@ -25,9 +25,11 @@ SETUP AND CONFIGURATION *tiny-confman.nvim-tiny.nvim-config-manager-setup-and-co
         'Coding4Glory/tiny-confman.nvim',
         -- Add your settings here, pass empty table for default settings (required)
         opts = {
-            -- the folder where category folders are placed, default reflects ~/.config/nvim/lua/plugins
+            -- the folder where category folders are placed,
+            -- the default value leads to ~/.config/nvim/lua/plugins
             plugin_dir = 'plugins',
             -- the folder where symlinks to enabled config files will be loaded
+            -- will be expected inside the plugin_dir
             link_dir = 'enabled',
         },
     },
@@ -39,8 +41,9 @@ USAGE                       *tiny-confman.nvim-tiny.nvim-config-manager-usage*
 
 PLUGINCONFIGS  ~
 
-Organizeyour plugins into categories by putting them into subfolders as shown
-(this matches the default config):
+Organizeyour plugins into categories by putting them into subfolders as shown.
+This figure this matches the default config with categories _basics_,
+_container_ and _ide_
 
 >
     .config/nvim/lua/plugins
@@ -49,7 +52,7 @@ Organizeyour plugins into categories by putting them into subfolders as shown
     └── ide
 <
 
-Create also an enabled folder
+createalso an enabled folder
 
 >
     .config/nvim/lua/plugins
@@ -57,20 +60,20 @@ Create also an enabled folder
     └── enabled
 <
 
-Folders will be seen as categories, further hirarchies are currently not
+Folders will be seen as categories, further hierarchies are currently not
 supported.
 
 
 COMMANDS  ~
 
-                                                    *:TinyEnPlug* *TinyEnPlug*
-:TinyEnPlug {category/module}          enables a module.
+                                                              *:PlgEn* *PlgEn*
+:PlgEn {category/module}               enables a module.
 
-                                                  *:TinyDisPlug* *TinyDisPlug*
-:TinyDisPlug {category/module}         disables a module.
+                                                            *:PlgDis* *PlgDis*
+:PlgDis {category/module}              disables a module.
 
-                                                    *:TinyLsPlug* *TinyLsPlug*
-:TinyLsPlug                            list all categories and modules
+                                                              *:PlgLs* *PlgLs*
+:PlgLs                                 list all categories and modules
 
 
 HELP                         *tiny-confman.nvim-tiny.nvim-config-manager-help*
