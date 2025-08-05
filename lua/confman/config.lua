@@ -2,7 +2,7 @@
 local M = {}
 
 ---@class TinyConfmanSettings
---@field link_dir string name of the directory to create the symlinks
+---@field link_dir string name of the directory to create the symlinks
 ---the same directory has to be set in lazy, will be created within plugin_dir
 local defaults = {
     ---@type string 

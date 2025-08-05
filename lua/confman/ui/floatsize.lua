@@ -58,27 +58,20 @@ end
 ---gets the start col for the floating window
 ---@return integer
 M.col = function()
+    print(vim.inspect(M))
     return (M.ui_width/2) - (M.width()/2)
 end
 
----@class FloatSizeFabric
-return {
+M.new = function(buf)
+    local vim_ui = vim.api.nvim_list_uis()[1]
+    local line_count = vim.api.nvim_buf_line_count(buf)
+    M.ui_width = vim_ui.width
+    M.ui_height = vim_ui.height
+    M.content_height = line_count
+    M.content_width = longest_line(buf, line_count)
+    return M
+end
 
-    ---@type function
-    ---creates a new FloatSize table
-    ---@param buf integer the buffer to show as floating
-    ---@return FloatSize
-    new = function(buf)
-        local vim_ui = vim.api.nvim_list_uis()[1]
-        local line_count = vim.api.nvim_buf_line_count(buf)
-
-        return vim.tbl_extend('force', M, {
-            ui_width = vim_ui.width,
-            ui_height = vim_ui.height,
-            content_height = line_count,
-            content_width = longest_line(buf, line_count)
-        })
-    end
-
-}
+---@return FloatSize
+return M
 

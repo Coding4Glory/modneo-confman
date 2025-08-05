@@ -28,6 +28,7 @@ end
 ---@param category string? Optional: the category to show
 ---@return table
 local function get_plugins(settings, category)
+    if category == nil then print ('nocat') end
     local plugin_path = get_plugin_dir(settings)
     local plugins = {}
     for folder, type in vim.fs.dir(plugin_path) do
