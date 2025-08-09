@@ -1,4 +1,4 @@
-*tiny-confman.nvim.txt*       For neovim-0.12      Last change: 2025 August 01
+*tiny-confman.nvim.txt*       For neovim-0.12      Last change: 2025 August 09
 
 ==============================================================================
 Table of Contents                        *tiny-confman.nvim-table-of-contents*
@@ -66,14 +66,19 @@ supported.
 
 COMMANDS  ~
 
-                                                              *:PlgEn* *PlgEn*
-:PlgEn {category/module}               enables a module.
+                                                               *ConfmanEnable*
+:ConfmanEnable {category/module}       enables a config file.
 
-                                                            *:PlgDis* *PlgDis*
-:PlgDis {category/module}              disables a module.
+                                                              *ConfmanDisable*
+:ConfmanDisable {category/module}      disables a config file.
 
-                                                              *:PlgLs* *PlgLs*
-:PlgLs                                 list all categories and modules
+                                                                 *ConfmanList*
+:ConfmanList                           lists all categories with their config
+                                       files
+
+                                                                 *ConfmanInfo*
+:ConfmanInfo                           lists all enabled plugins (no category
+                                       shown).
 
 
 HELP                         *tiny-confman.nvim-tiny.nvim-config-manager-help*

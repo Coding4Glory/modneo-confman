@@ -47,14 +47,19 @@ Folders will be seen as categories, further hierarchies are currently not suppor
 ### Commands ⌨
 
 ```vimdoc
-                                                              *:PlgEn* *PlgEn*
-:PlgEn {category/module}               enables a module.
+                                                               *ConfmanEnable*
+:ConfmanEnable {category/module}       enables a config file.
 
-                                                            *:PlgDis* *PlgDis*
-:PlgDis {category/module}              disables a module.
+                                                              *ConfmanDisable*
+:ConfmanDisable {category/module}      disables a config file.
 
-                                                              *:PlgLs* *PlgLs*
-:PlgLs                                 list all categories and modules
+                                                                 *ConfmanList*
+:ConfmanList                           lists all categories with their config
+                                       files
+
+                                                                 *ConfmanInfo*
+:ConfmanInfo                           lists all enabled plugins (no category
+                                       shown).
 ```
 
 ## Help ❔
