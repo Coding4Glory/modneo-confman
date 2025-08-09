@@ -1,4 +1,5 @@
 ---@class TinyConfmanCore
+---@field config TinyConfmanSettings
 local M = {}
 
 ---@type TinyConfmanSettings
