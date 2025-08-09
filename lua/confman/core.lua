@@ -16,11 +16,11 @@ end
 ---@param basepath any
 ---@param filter any
 ---@return table
-local function get_files(basepath, filter)
-    filter = filter or '*[^.]'
-    print(filter)
-    local path = basepath .. M.config.dir_separator .. filter
-    return vim.split(vim.fn.glob(path), '\n', { trimempty = true })
+local function get_files(basepath, filter, all_links)
+    all_links = all_links or false
+    filter = filter or '*.[lv][iu][am]'
+    local path = vim.fs.joinpath(basepath, filter)
+    return vim.fn.glob(path, false, true, all_links)
 end
 
 ---@param settings TinyConfmanSettings
@@ -29,27 +29,39 @@ end
 local function get_plugins(settings, category)
     local plugin_path = get_plugin_dir(settings)
     local plugins = {}
-    for _, folder in ipairs(get_files(plugin_path)) do
-        if category ~= nil and category ~= folder then
-            goto continue
-        end
+    for folder, type in vim.fs.dir(plugin_path) do
+        if type ~= 'directory' then goto continue end
+        if category ~= nil and category ~= folder then goto continue end
+
         local cat_key = vim.fs.basename(folder)
-        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), '*.lua')
+        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), nil, category == settings.link_dir)
+
         ::continue::
     end
     return plugins
 end
 
+---prints the given plugins
+---@param plugins table
+local function print_plugins(plugins)
+    for c, pl in pairs(plugins) do
+        print(c)
+        for _, p in ipairs(pl) do
+            vim.print(vim.fs.basename(p))
+        end
+    end
+end
+
 ---@type function
 ---lists all available plugins
 M.list_available = function()
-    print(vim.inspect(get_plugins(M.config)))
+    print_plugins(get_plugins(M.config))
 end
 
 ---@type function
 ---lists the enabled plugins
 M.list_enabled = function()
-    print(vim.inspect(get_plugins(M.config, M.config.link_dir)))
+    print_plugins(get_plugins(M.config, M.config.link_dir))
 end
 
 
