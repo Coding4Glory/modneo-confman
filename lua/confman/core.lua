@@ -41,27 +41,17 @@ local function get_plugins(settings, category)
     return plugins
 end
 
----prints the given plugins
----@param plugins table
-local function print_plugins(plugins)
-    for c, pl in pairs(plugins) do
-        print(c)
-        for _, p in ipairs(pl) do
-            vim.print(vim.fs.basename(p))
-        end
-    end
-end
 
 ---@type function
 ---lists all available plugins
 M.list_available = function()
-    print_plugins(get_plugins(M.config))
+    return get_plugins(M.config)
 end
 
 ---@type function
 ---lists the enabled plugins
 M.list_enabled = function()
-    print_plugins(get_plugins(M.config, M.config.link_dir))
+    return get_plugins(M.config, M.config.link_dir)
 end
 
 
@@ -107,7 +97,7 @@ end
 ---call on require to apply settings
 ---@param settings TinyConfmanSettings the settings to apply
 ---@return TinyConfmanCore
-M.init = function(settings)
+M.setup = function(settings)
     M.config = settings or require('tiny-confman.config').settings
     return M
 end

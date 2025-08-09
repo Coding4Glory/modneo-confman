@@ -13,6 +13,7 @@ local defaults = {
     link_dir = 'enabled',
     ---@type string
     ---the directory separation character
+    ---@deprecated
     dir_separator = ((vim.uv or vim.loop).os_uname().sysname == 'Linux' and '/' or '\\')
 }
 
@@ -20,7 +21,7 @@ local defaults = {
 M.settings = defaults
 
 ---@param args TinyConfmanSettings?
-M.setup = function(args)
+M.init = function(args)
     M.settings = vim.tbl_deep_extend('force', M.settings, args or {})
     return M.settings
 end
