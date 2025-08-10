@@ -9,7 +9,7 @@ M.config = {}
 ---@param settings TinyConfmanSettings
 ---@return string
 local function get_plugin_dir(settings)
-    return vim.fs.joinpath(vim.fn.stdpath('config'), 'lua', settings.plugin_dir)
+    return vim.fs.joinpath(settings.config_dir, settings.plugin_dir)
 end
 
 ---Gets the files in basepath maching the given filter.
@@ -42,6 +42,24 @@ local function get_plugins(settings, category)
     return plugins
 end
 
+---Determines the correct file name
+---@param settings TinyConfmanSettings
+---@param category string
+---@param name string
+local function find_source_file(settings, category, name)
+    local path_prefix = vim.fs.joinpath(settings.plugin_dir, category, name)
+    local file_endings = { 'lua', 'vim' }
+    local uv = vim.uv or vim.loop
+    local found = nil
+    for _, suffix in ipairs(file_endings) do
+        local proto = vim.endswith(path_prefix, suffix) and path_prefix or path_prefix .. '.' .. suffix
+        if uv.fs_stat(proto) then
+            found = proto
+        end
+    end
+    return found
+end
+
 
 ---@type function
 ---lists all available plugins
@@ -58,21 +76,20 @@ end
 
 ---enables the given plugin
 ---@type function
----@param opts vim.api.keyset.create_user_command.command_args a category/name combination
+---@param opts vim.api.keyset.create_user_command.command_args
 M.enable = function(opts)
     local uv = (vim.uv or vim.loop)
     for cat, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
-        local modpath = vim.fs.joinpath(get_plugin_dir(M.config), cat, mod)
-        local src_file = vim.fs.joinpath(get_plugin_dir(M.config), opts.args)
+        local src_file = find_source_file(M.config, cat, mod)
 
-        if not uv.fs_stat(src_file) then
-            print('Plugin file for ' .. opts.args .. ' not found')
+        if src_file == nil then
+            print('Config file matching ' .. opts.args .. ' not found')
             return
         end
         local dst_file = vim.fs.joinpath(get_plugin_dir(M.config), M.config.link_dir)
         if uv.fs_stat(dst_file) then
             if not opts.bang then
-                print('!! Plugin already enabled call TinyEnPlug! to recreate link')
+                print('!! Plugin already enabled call ConfmanEnable! to recreate link')
                 return
             end
             uv.fs_unlink(dst_file)

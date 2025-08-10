@@ -12,9 +12,9 @@ local defaults = {
     ---the directory where links to enabled plugins shall be stored
     link_dir = 'enabled',
     ---@type string
-    ---the directory separation character
-    ---@deprecated
-    dir_separator = ((vim.uv or vim.loop).os_uname().sysname == 'Linux' and '/' or '\\')
+    ---the directory where the user configuration is stored, defaults to ~/.config/nvim/lua
+    ---the default value is retrieved via `stdpath`
+    config_dir = vim.fs.joinpath(vim.fn.stdpath('config'), 'lua')
 }
 
 ---@type TinyConfmanSettings
