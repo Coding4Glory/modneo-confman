@@ -13,6 +13,12 @@ local function longest_line(buf, line_count)
     return longest
 end
 
+local function side_length(min, max, content)
+    if content > max then return max end
+    if content < min then return min end
+    return content
+end
+
 ---@class FloatSize
 ---@field ui_width integer
 ---@field ui_height integer
@@ -27,24 +33,20 @@ local M = {
 
 ---@type function
 ---gets the hight for the floating window
+---@param min integer|nil minimum height
 ---@return integer
-M.height = function()
+M.height = function(min)
     local max_height = M.ui_height - (M.y_border * 2)
-    if M.content_height > max_height then
-        return max_height
-    end
-    return M.content_height
+    return side_length(min or 1, max_height, M.content_height)
 end
 
 ---@type function
 ---gets the hight for the floating window
+---@param min integer|nil 
 ---@return integer
-M.width = function()
+M.width = function(min)
     local max_width = M.ui_width - (M.x_border * 2)
-    if M.content_width > max_width then
-        return max_width
-    end
-    return M.content_width
+    return side_length(min or 1, max_width, M.content_width)
 end
 
 ---@type function
@@ -62,7 +64,10 @@ M.col = function()
     return (M.ui_width/2) - (M.width()/2)
 end
 
+---@return FloatSize
 M.new = function(buf)
+    -- thought about caching vim_ui but this allows some adjustment
+    -- on resizing
     local vim_ui = vim.api.nvim_list_uis()[1]
     local line_count = vim.api.nvim_buf_line_count(buf)
     M.ui_width = vim_ui.width
@@ -72,6 +77,7 @@ M.new = function(buf)
     return M
 end
 
----@return FloatSize
 return M
+
+
 
