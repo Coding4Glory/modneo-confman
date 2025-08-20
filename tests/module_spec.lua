@@ -1,7 +1,7 @@
 local config = require('confman.config')
 local core = require('confman.core')
 local uv = (vim.uv or vim.loop)
-local fixture_settings = config.init({
+local fixture_settings = config.setup({
     config_dir = uv.cwd(),
     plugin_dir = 'tests/fixture',
 })

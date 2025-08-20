@@ -1,21 +1,45 @@
+--[[
+Part of confman.nvim
+Copyright (C) 2025  Markus Hergenröder
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+--]]
+
 ---@class TinyConfmanCore
----@field config TinyConfmanSettings
+---@field options ConfmanOptions
 local M = {}
 
----@type TinyConfmanSettings
+---@type ConfmanOptions
 ---@private
-M.config = {}
+M.options = {}
 
----@param settings TinyConfmanSettings
+---@param settings ConfmanOptions
 ---@return string
 local function get_plugin_dir(settings)
     return vim.fs.joinpath(settings.config_dir, settings.plugin_dir)
 end
 
+---@param settings ConfmanOptions
+---@param name string
+local function get_link_file(settings, name)
+    return vim.fs.joinpath(settings.config_dir, settings.plugin_dir, settings.link_dir, name)
+end
+
 ---Gets the files in basepath maching the given filter.
 ---If no filter is given only files or directories not containing dots will be returned.
 ---@param basepath any
----@param filter any
+---@param filter string? may be used to apply a glob pattern, can be ommited with null
 ---@return table
 local function get_files(basepath, filter, all_links)
     all_links = all_links or false
@@ -24,7 +48,8 @@ local function get_files(basepath, filter, all_links)
     return vim.fn.glob(path, false, true, all_links)
 end
 
----@param settings TinyConfmanSettings
+---gets the categories and their contained files
+---@param settings ConfmanOptions
 ---@param category string? Optional: the category to show
 ---@return table
 local function get_plugins(settings, category)
@@ -44,15 +69,15 @@ local function get_plugins(settings, category)
 end
 
 ---Determines the correct file name
----@param settings TinyConfmanSettings
+---@param settings ConfmanOptions
 ---@param category string
 ---@param name string
 local function find_source_file(settings, category, name)
     local path_prefix = vim.fs.joinpath(settings.plugin_dir, category, name)
-    local file_endings = { 'lua', 'vim' }
     local uv = vim.uv or vim.loop
     local found = nil
-    for _, suffix in ipairs(file_endings) do
+
+    for _, suffix in ipairs(get_files(settings)) do
         local proto = vim.endswith(path_prefix, suffix) and path_prefix or path_prefix .. '.' .. suffix
         if uv.fs_stat(proto) then
             found = proto
@@ -61,63 +86,78 @@ local function find_source_file(settings, category, name)
     return found
 end
 
-
----@type function
 ---lists all available plugins
-M.list_available = function()
-    return get_plugins(M.config)
-end
-
 ---@type function
----lists the enabled plugins
-M.list_enabled = function()
-    return get_plugins(M.config, M.config.link_dir)
+M.list_available = function()
+    return get_plugins(M.options)
 end
 
+---lists the enabled plugins
+---@type function
+M.list_enabled = function()
+    return get_plugins(M.options, M.options.link_dir)
+end
+
+---enables the given configuration file
+---@param category string module category
+---@param name string the name of the config file within the category
+---@param force boolean? force re-enabling / overriding
+M.enable = function(cat, mod, force)
+    local src_file = find_source_file(M.options, cat, mod)
+
+    if src_file == nil then
+        print(string.format('Config file matching %s/%s not found', cat, mod))
+        return
+    end
+
+    local uv = (vim.uv or vim.loop)
+    local dst_file = get_link_file(M.options, mod)
+    if uv.fs_stat(dst_file) then
+        if not (force or false) then
+            print('!! Plugin already enabled call ConfmanEnable! to recreate link')
+            return
+        end
+        uv.fs_unlink(dst_file)
+    end
+
+    uv.fs_symlink(src_file, dst_file)
+end
 
 ---enables the given plugin
 ---@type function
 ---@param opts vim.api.keyset.create_user_command.command_args
-M.enable = function(opts)
-    local uv = (vim.uv or vim.loop)
+M.enable_command = function(opts)
     for cat, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
-        local src_file = find_source_file(M.config, cat, mod)
-
-        if src_file == nil then
-            print('Config file matching ' .. opts.args .. ' not found')
-            return
-        end
-        local dst_file = vim.fs.joinpath(get_plugin_dir(M.config), M.config.link_dir)
-        if uv.fs_stat(dst_file) then
-            if not opts.bang then
-                print('!! Plugin already enabled call ConfmanEnable! to recreate link')
-                return
-            end
-            uv.fs_unlink(dst_file)
-        end
-
-        uv.fs_symlink(src_file, dst_file)
+        M.enable(cat, mod, opts.bang)
     end
 end
 
----@type function
----disables the given plugin
----@param opts vim.api.keyset.create_user_command.command_args a category/name combination
-M.disable = function(opts)
-    local parts = vim.split(opts.args, '/', { trimempty = true })
-    local link_file = vim.fs.joinpath(get_plugin_dir(M.config), M.config.link_dir, parts[1])
+M.disable = function(name)
+    local link_file = get_link_file(M.options, name)
     local uv = (vim.uv or vim.loop)
-    if uv.fs_stat(link_file) then
+    if uv.fs_stat(link_file) ~= nil then
         uv.fs_unlink(link_file)
     end
 end
-
+---disables the given plugin
 ---@type function
+---@param opts vim.api.keyset.create_user_command.command_args a category/name combination
+M.disable_command = function(opts)
+    for _, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
+        M.disable(mod)
+    end
+end
+
+M.is_enabled = function(name)
+    return (vim.uv or vim.loop).fs_stat(get_link_file(M.options, name))
+end
+
 ---call on require to apply settings
----@param settings TinyConfmanSettings the settings to apply
+---@type function
+---@param settings ConfmanOptions the settings to apply
 ---@return TinyConfmanCore
 M.setup = function(settings)
-    M.config = settings or require('tiny-confman.config').settings
+    M.options = settings or require('tiny-confman.config').settings
     return M
 end
 
