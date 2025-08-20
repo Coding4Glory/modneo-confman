@@ -4,6 +4,7 @@ local uv = (vim.uv or vim.loop)
 local fixture_settings = config.setup({
     config_dir = uv.cwd(),
     plugin_dir = 'tests/fixture',
+    link_dir = 'enabled'
 })
 local function count_configs(t)
     local i = 0
@@ -42,7 +43,7 @@ end)
 
 describe('test plugin functions:', function()
     it('gets a table with all plugins', function()
-        local sut = core.setup(fixture_settings)
+        local sut = core.init(fixture_settings)
         local all_plugins = sut.list_available()
         assert.is_table(all_plugins)
         assert.is_equal(3, count_categories(all_plugins))
@@ -50,7 +51,7 @@ describe('test plugin functions:', function()
     end)
 
     it('gets a table with enabled plugins', function()
-        local sut = core.setup(fixture_settings)
+        local sut = core.init(fixture_settings)
         local enabled_plugins = sut.list_enabled()
         assert.is_table(enabled_plugins)
         assert.is_equal(1, count_categories(enabled_plugins))

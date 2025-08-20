@@ -29,12 +29,26 @@ local function mark_enabled(plugin, enabled)
     return ''
 end
 
+M.init = function()
+    M.options = require'confman.config'.options
+    return M
+end
 
 ---prints the given plugins
 ---@param plugins table
 ---@param settings ConfmanOptions
 M.list_plugins = function(plugins, settings)
     local enabled = plugins[settings.link_dir]
+    for c, pl in pairs(plugins) do
+        vim.print(c)
+        for _, p in ipairs(pl) do
+            vim.print('- ' .. vim.fs.basename(p) .. mark_enabled(p, enabled))
+        end
+    end
+end
+
+---@param items table
+M.print_plugins = function(items)
     for c, pl in pairs(plugins) do
         vim.print(c)
         for _, p in ipairs(pl) do

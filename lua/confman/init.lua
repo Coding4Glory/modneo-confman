@@ -21,8 +21,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 return {
     ---@param opts ConfmanOptions custom settings
     setup = function(opts)
-        local settings = require('confman.config').setup(opts)
-        local module = require('confman.core').setup(settings)
+        require('confman.config').setup(opts)
+        local module = require('confman.core').init()
         require('confman.commands').setup(module)
     end,
 }

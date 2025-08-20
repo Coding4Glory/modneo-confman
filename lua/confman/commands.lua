@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local render = require('confman.render')
+local render = require('confman.ui.render')
 
 ---@class TinyConfmanCommands
 local M = {}
@@ -26,10 +26,10 @@ local M = {}
 ---@param module TinyConfmanCore
 M.setup = function(module)
     vim.api.nvim_create_user_command('ConfmanList', function()
-        render.list_plugins(module.list_available(), module.config)
+        render.list_plugins(module.list_available(), module.options)
     end, { desc = 'list all plugins' })
     vim.api.nvim_create_user_command('ConfmanInfo', function()
-        render.list_plugins(module.list_enabled(), module.config)
+        render.list_plugins(module.list_enabled(), module.options)
     end, { desc = 'list enabled plugins' })
     vim.api.nvim_create_user_command('ConfmanEnable', module.enable_command, { desc = 'enable plugin', bang = true })
     vim.api.nvim_create_user_command('ConfmanDisable', module.disable_command, { desc = 'disable plugin' })

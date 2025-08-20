@@ -44,7 +44,7 @@ M.options = defaults
 ---will accumulate changes if called multiple times
 ---@param args ConfmanOptions
 M.setup = function(args)
-    M.options = vim.tbl_deep_extend('force', M.options, args or {})
+    M.options = vim.tbl_deep_extend('force', M.options or defaults, args or {})
     return M.options
 end
 

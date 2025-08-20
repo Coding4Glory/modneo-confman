@@ -140,24 +140,28 @@ M.disable = function(name)
     end
 end
 ---disables the given plugin
+---expects a category/name combination in args
 ---@type function
----@param opts vim.api.keyset.create_user_command.command_args a category/name combination
+---@param opts vim.api.keyset.create_user_command.command_args
 M.disable_command = function(opts)
     for _, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
         M.disable(mod)
     end
 end
 
-M.is_enabled = function(name)
-    return (vim.uv or vim.loop).fs_stat(get_link_file(M.options, name))
+---@return integer 1 if the link exists otherwise 0
+M.enabled = function(cat, name)
+    if (vim.uv or vim.loop).fs_stat(get_link_file(M.options, name)) ~= nil then
+        return 1
+    end
+    return 0
 end
 
 ---call on require to apply settings
 ---@type function
----@param settings ConfmanOptions the settings to apply
 ---@return TinyConfmanCore
-M.setup = function(settings)
-    M.options = settings or require('tiny-confman.config').settings
+M.init = function()
+    M.options = require('confman.config').options
     return M
 end
 
