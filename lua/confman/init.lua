@@ -23,6 +23,10 @@ return {
     setup = function(opts)
         require('confman.config').setup(opts)
         local module = require('confman.core').init()
-        require('confman.commands').setup(module)
+        if package.loaded['confman.commands'] == nil then
+            require('confman.commands').setup(module)
+            return
+        end
+        require('confman.commands').unload().setup(module)
     end,
 }

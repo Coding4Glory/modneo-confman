@@ -33,6 +33,21 @@ M.setup = function(module)
     end, { desc = 'list enabled plugins' })
     vim.api.nvim_create_user_command('ConfmanEnable', module.enable_command, { desc = 'enable plugin', bang = true })
     vim.api.nvim_create_user_command('ConfmanDisable', module.disable_command, { desc = 'disable plugin' })
+    vim.api.nvim_create_user_command('Confman', function()
+        local all_plugins = module.list_enabled()
+        local converted = require'confman.confitem'.convert(all_plugins)
+        require'confman.ui.dialog'.show_plugins(converted)
+    end, { desc = 'show Confman UI' })
+end
+
+M.unload = function()
+    vim.api.nvim_del_user_command('ConfmanList')
+    vim.api.nvim_del_user_command('ConfmanInfo')
+    vim.api.nvim_del_user_command('ConfmanEmable')
+    vim.api.nvim_del_user_command('ConfmanDisable')
+    vim.api.nvim_del_user_command('Confman')
+    package.loaded['confman.commands'] = nil
+    return M
 end
 
 return M

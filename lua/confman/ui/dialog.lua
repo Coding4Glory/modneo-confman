@@ -38,6 +38,7 @@ M.get_window_dimensions = function(buf)
     return require('confman.ui.floatsize').new(buf)
 end
 
+---@return integer|nil
 M.new_buffer = function()
     local bufid = vim.api.nvim_create_buf(false, true)
     if bufid == 0 then
@@ -50,12 +51,6 @@ M.new_buffer = function()
         false,
         { scope = 'local', buf = bufid }
     )
-    vim.api.nvim_set_option_value(
-        'cursorline',
-        true,
-        { scope = 'local', buf = bufid }
-    )
-
     return bufid
 end
 
@@ -65,6 +60,10 @@ end
 ---@param plugins table
 M.show_plugins = function(plugins)
     local buf = M.new_buffer()
+    if buf == nil then
+        return
+    end
+
     require('confman.ui.render').init().to_buf(plugins, buf)
     local float_size = M.get_window_dimensions(buf)
 
@@ -78,71 +77,65 @@ M.show_plugins = function(plugins)
     }
 
     local win = vim.api.nvim_open_win(buf, true, win_opts)
+    vim.api.nvim_set_option_value(
+        'cursorline',
+        true,
+        { scope = 'local', win = win }
+    )
 
     vim.api.nvim_set_option_value(
         'number',
         false,
-        { scope = 'local', buf = buf }
+        { scope = 'local', win = win }
     )
     vim.api.nvim_set_option_value(
         'relativenumber',
         false,
-        { scope = 'local', buf = buf }
+        { scope = 'local', win = win }
     )
     vim.keymap.set(
         'n',
         'q',
         '<cmd>bw<CR>',
-        { desc = 'b' .. buf .. 'Confman: close', noremap = true, buffer = buf }
-    )
-    vim.keymap.set(
-        'n',
-        'e',
-        function()
-            local lineno = vim.fn.getpos('.')
-            local to_enable = get_by_line(plugins, lineno)
-            if to_enable ~= nil then
-                to_enable.enable()
-            end
-        end,
         {
-            desc = 'b' .. buf .. ' Confman: enable',
+            desc = 'b' .. buf .. 'Confman: close',
             noremap = true,
             buffer = buf,
         }
     )
-    vim.keymap.set(
-        'n',
-        'E',
-        function()
-            local lineno = vim.fn.getpos('.')
-            local to_enable = get_by_line(plugins, lineno)
-            if to_enable ~= nil then
-                to_enable.enable(true)
-            end
-        end,
-        {
-            desc = 'b' .. buf .. ' Confman: enable',
-            noremap = true,
-            buffer = buf,
-        }
-    )
-    vim.keymap.set(
-        'n',
-        'd',
-        function()
-            local lineno = vim.fn.getpos('.')
-            local to_disable = get_by_line(plugins, lineno)
-            if to_disable ~= nil then
-                to_disable.disable()
-            end
-        end,
-        {
-            desc = 'b' .. buf .. ' Confman: disable',
-            noremap = true,
-            buffer = buf,
-        }
-    )
+    vim.keymap.set('n', 'e', function()
+        local lineno = vim.fn.getpos('.')
+        local to_enable = get_by_line(plugins, lineno)
+        if to_enable ~= nil then
+            to_enable.enable()
+        end
+    end, {
+        desc = 'b' .. buf .. ' Confman: enable',
+        noremap = true,
+        buffer = buf,
+    })
+    vim.keymap.set('n', 'E', function()
+        local lineno = vim.fn.getpos('.')
+        local to_enable = get_by_line(plugins, lineno)
+        if to_enable ~= nil then
+            to_enable.enable(true)
+        end
+    end, {
+        desc = 'b' .. buf .. ' Confman: enable',
+        noremap = true,
+        buffer = buf,
+    })
+    vim.keymap.set('n', 'd', function()
+        local lineno = vim.fn.getpos('.')
+        local to_disable = get_by_line(plugins, lineno)
+        if to_disable ~= nil then
+            to_disable.disable()
+        end
+    end, {
+        desc = 'b' .. buf .. ' Confman: disable',
+        noremap = true,
+        buffer = buf,
+    })
 end
 
 return M
