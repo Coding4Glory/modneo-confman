@@ -29,6 +29,7 @@ local function mark_enabled(plugin, enabled)
     return ''
 end
 
+---initialzes the renderer with the configuration
 M.init = function()
     M.options = require'confman.config'.options
     return M
@@ -37,7 +38,7 @@ end
 ---prints the given plugins
 ---@param plugins table
 ---@param settings ConfmanOptions
-M.list_plugins = function(plugins, settings)
+M.print_plugin_files = function(plugins, settings)
     local enabled = plugins[settings.link_dir]
     for c, pl in pairs(plugins) do
         vim.print(c)
@@ -47,12 +48,21 @@ M.list_plugins = function(plugins, settings)
     end
 end
 
+---renders the items to the buffer with the given id and sets the line numbers
 ---@param items table
-M.print_plugins = function(items)
-    for c, pl in pairs(plugins) do
-        vim.print(c)
+---@param buf integer buffer to write to
+---@return table
+M.to_buf = function(items, buf)
+    local line_counter = 1
+    for c, pl in pairs(items) do
+        local last_line = vim.api.nvim_buf_line_count(buf)
+        vim.api.nvim_buf_set_lines(buf, last_line, last_line + 1, false, { c })
+        line_counter = line_counter + 1
         for _, p in ipairs(pl) do
-            vim.print('- ' .. vim.fs.basename(p) .. mark_enabled(p, enabled))
+            local line = string.format('- %s%s', p.name, p.enabled and ' *' or '')
+            vim.api.nvim_buf_set_lines(buf, last_line, last_line + 1, false, { line })
+            p.line_number = line_counter
+            line_counter = line_counter + 1
         end
     end
 end

@@ -53,7 +53,7 @@ end
 ---@param category string? Optional: the category to show
 ---@return table
 local function get_plugins(settings, category)
-    if category == nil then print ('nocat') end
+    if category == nil then print('nocat') end
     local plugin_path = get_plugin_dir(settings)
     local plugins = {}
     for folder, type in vim.fs.dir(plugin_path) do
@@ -99,8 +99,8 @@ M.list_enabled = function()
 end
 
 ---enables the given configuration file
----@param category string module category
----@param name string the name of the config file within the category
+---@param cat string module category
+---@param mod string the name of the config file within the category
 ---@param force boolean? force re-enabling / overriding
 M.enable = function(cat, mod, force)
     local src_file = find_source_file(M.options, cat, mod)

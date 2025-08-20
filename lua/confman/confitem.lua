@@ -17,44 +17,115 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
 ---@class ConfmanConfItemFactory
-return {
-    ---creates a new ConfmanConfItem
-    ---@see ConfmanConfItem
-    new = function()
-        ---@class ConfmanConfItem
-        ---@field category string the plugin category
-        ---@field name string the name of the plugin config file
-        ---@field line_number integer contains the line number after set_line was called
-        local M = {}
+---@field options ConfmanOptions
+local F = {}
 
-        ---initializes the instance
-        ---@param path string the absolute path to the plugin
-        ---@param enabled boolean? a value indicating if the plugin is enabled
-        M.init = function(path, enabled)
-            M.category = vim.fs.basename(vim.fs.dirname(path))
-            M.name = vim.fs.basename(path)
-            M.abspath = path
-            M.enabled = enabled or false
-            return M
-        end
+F.init = function()
+    F.options = require('confman.config').options
+    return F
+end
 
-        ---@param num integer the line number the item got added to
-        M.set_line = function(num)
-            M.line_number = num
-        end
+---creates a new ConfmanConfItem
+---@see ConfmanConfItem
+---@return ConfmanConfItem
+F.new = function()
+    ---@class ConfmanConfItem
+    ---@field category string the plugin category
+    ---@field name string the name of the plugin config file
+    ---@field line_number integer contains the line number after set_line was called
+    ---@field abspath string the absolute path to the plugin file
+    ---@field enabled boolean a value indicating if the plugin is enabled
+    local M = {}
 
-        ---enables this plugin
-        ---@param force boolean?
-        ---@see TinyConfmanCore.enable
-        M.enable = function(force)
-            require('confman.core').enable(M.category, M.name, force)
-        end
+    ---initializes the instance
+    ---@param path string the absolute path to the plugin
+    ---@param enabled boolean? a value indicating if the plugin is enabled
+    ---@return ConfmanConfItem
+    M.init = function(path, enabled)
+        M.category = vim.fs.basename(vim.fs.dirname(path))
+        M.name = vim.fs.basename(path)
+        M.abspath = path
+        M.enabled = enabled or M.category == F.options.link_dir
+        M.line_number = 0
+        return M
+    end
 
-        ---disables this plugin
-        ---@see TinyConfmanCore.disable
-        M.disable = function()
-            require('confman.core').disable(M.name)
+    ---enables this plugin
+    ---@param force boolean?
+    ---@see TinyConfmanCore.enable
+    M.enable = function(force)
+        require('confman.core').enable(M.category, M.name, force)
+    end
+
+    ---disables this plugin
+    ---@see TinyConfmanCore.disable
+    M.disable = function()
+        require('confman.core').disable(M.name)
+    end
+end
+
+---creates a table of ConfmanConfItem instances based on the passed table
+---@param plugins table
+---@return table a categorized table with ConfmanConfItem lists as values
+F.convert = function(plugins)
+    ---aligns the table so enabled plugins are marked as such
+    local function align_enabled(converted, enabled)
+        for _, pl in pairs(converted) do
+            for _, p in ipairs(pl) do
+                if enabled[p.name] ~= nil then
+                    p.enabled = true
+                end
+            end
         end
     end
-}
 
+    ---used to avoid redundant code below
+    ---@param enabled table
+    ---@param item ConfmanConfItem
+    local function enabled_action(enabled, item)
+        if item.enabled then
+            enabled[item.name] = true
+            return true
+        end
+        return false
+    end
+
+    local result = {}
+    local enabled = {}
+
+    if plugins == nil then
+        return result
+    end
+
+    -- simple table without categories
+    if table.maxn(plugins) > 0 then
+        for _, p in ipairs(plugins) do
+            local item = F.new().init(p)
+            if not enabled_action(enabled, item) then
+                if result[item.category] == nil then
+                    result[item.category] = {}
+                end
+                table.insert(result[item.category], item)
+            end
+
+        end
+        align_enabled(result, enabled)
+        return result
+    end
+
+    -- already categorized
+    for c, pl in pairs(plugins) do
+        local converted = {}
+        for _, p in ipairs(pl) do
+            local item = F.new().init(p)
+            if not enabled_action(enabled, item) then
+                table.insert(converted, item)
+            end
+        end
+        result[c] = converted
+    end
+    align_enabled(result, enabled)
+    return result
+end
+
+return F
