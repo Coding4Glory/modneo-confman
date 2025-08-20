@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
+---@return ConfmanConfItem?
 local function get_by_line(plugins, lineno)
     for _, pl in pairs(plugins) do
         for _, p in ipairs(pl) do
@@ -44,8 +45,16 @@ M.new_buffer = function()
         return nil
     end
 
-    vim.api.nvim_set_option_value("modifiable", false, { scope = "local", buf = bufid })
-    vim.api.nvim_set_option_value("cursorline", true, { scope = "local", buf = bufid })
+    vim.api.nvim_set_option_value(
+        'modifiable',
+        false,
+        { scope = 'local', buf = bufid }
+    )
+    vim.api.nvim_set_option_value(
+        'cursorline',
+        true,
+        { scope = 'local', buf = bufid }
+    )
 
     return bufid
 end
@@ -53,14 +62,16 @@ end
 ---creates a floating window for the given buffer
 ---@type function
 ---@param buf integer buffer to show as floating
----@param bindings table? keybindings in form of `{ {lhs}, {rhs}, {desc} }`.
-M.show_floating = function(buf, bindings)
+---@param plugins table
+M.show_plugins = function(plugins)
+    local buf = M.new_buffer()
+    require('confman.ui.render').init().to_buf(plugins, buf)
     local float_size = M.get_window_dimensions(buf)
 
     local win_opts = {
         relative = 'editor',
         width = float_size.width(),
-        height = float_size.hight(),
+        height = float_size.height(),
         col = float_size.col(),
         row = float_size.row(),
         border = { '┌', '─', '┐', '│', '┘', '─', '└', '│' },
@@ -78,21 +89,60 @@ M.show_floating = function(buf, bindings)
         false,
         { scope = 'local', buf = buf }
     )
-    vim.api.nvim_buf_set_keymap(
-        buf,
+    vim.keymap.set(
         'n',
         'q',
         '<cmd>bw<CR>',
-        { desc = 'close', noremap = true }
+        { desc = 'b' .. buf .. 'Confman: close', noremap = true, buffer = buf }
     )
-    for _, kb in ipairs(bindings or {}) do
-        vim.keymap.set(
-            'n',
-            kb[1],
-            kb[2],
-            { buffer = buf, desc = kb[3] or '' }
-        )
-    end
+    vim.keymap.set(
+        'n',
+        'e',
+        function()
+            local lineno = vim.fn.getpos('.')
+            local to_enable = get_by_line(plugins, lineno)
+            if to_enable ~= nil then
+                to_enable.enable()
+            end
+        end,
+        {
+            desc = 'b' .. buf .. ' Confman: enable',
+            noremap = true,
+            buffer = buf,
+        }
+    )
+    vim.keymap.set(
+        'n',
+        'E',
+        function()
+            local lineno = vim.fn.getpos('.')
+            local to_enable = get_by_line(plugins, lineno)
+            if to_enable ~= nil then
+                to_enable.enable(true)
+            end
+        end,
+        {
+            desc = 'b' .. buf .. ' Confman: enable',
+            noremap = true,
+            buffer = buf,
+        }
+    )
+    vim.keymap.set(
+        'n',
+        'd',
+        function()
+            local lineno = vim.fn.getpos('.')
+            local to_disable = get_by_line(plugins, lineno)
+            if to_disable ~= nil then
+                to_disable.disable()
+            end
+        end,
+        {
+            desc = 'b' .. buf .. ' Confman: disable',
+            noremap = true,
+            buffer = buf,
+        }
+    )
 end
 
 return M
