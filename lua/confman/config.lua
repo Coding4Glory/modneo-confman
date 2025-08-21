@@ -23,18 +23,18 @@ local M = {}
 ---@field link_dir string name of the directory to create the symlinks
 ---the same directory has to be set in lazy, will be created within plugin_dir
 local defaults = {
-
-    ---the directory (within lua) where the plugins configurations
-    ---are located defaults to plugins
+    ---the directory where the plugin categories
+    ---are located, defaults to lua/plugins
     ---@type string 
-    plugin_dir = 'plugins',
+    plugin_dir = vim.fs.joinpath('lua', 'plugins'),
     ---the directory where links to enabled plugins shall be stored
+    ---if not existing the directory will be created in the plugin_dir
     ---@type string
     link_dir = 'enabled',
     ---the directory where the user configuration is stored, defaults to
-    ---`~/.config/nvim/lua.` the default value is retrieved via `stdpath`
+    ---`~/.config/nvim.` the default value is retrieved via `stdpath`
     ---@type string
-    config_dir = vim.fs.joinpath(vim.fn.stdpath('config'), 'lua'),
+    config_dir = vim.fn.stdpath('config'),
 }
 
 ---@type ConfmanOptions
