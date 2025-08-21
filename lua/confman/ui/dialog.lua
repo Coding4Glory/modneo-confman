@@ -25,6 +25,13 @@ local function get_by_line(plugins, lineno)
             end
         end
     end
+    return nil
+end
+
+---@return ConfmanConfItem?
+local function get_selected(plugins, win)
+    local _, row, _, _, _ = unpack(vim.fn.getcurpos(win))
+    return get_by_line(plugins, row)
 end
 
 ---@class ConfmanDialogs
@@ -34,7 +41,6 @@ local M = {}
 ---@type function
 ---@return FloatSize
 M.get_window_dimensions = function(buf)
-    -- return F.new(buf)
     return require('confman.ui.floatsize').new(buf)
 end
 
@@ -48,10 +54,16 @@ M.new_buffer = function()
 
     vim.api.nvim_set_option_value(
         'modifiable',
-        false,
+        true,
         { scope = 'local', buf = bufid }
     )
     return bufid
+end
+
+
+M.close_dialog = function(win, buf)
+    vim.api.nvim_win_close(win, true)
+    vim.api.nvim_buf_delete(buf, { force = true })
 end
 
 ---creates a floating window for the given buffer
@@ -65,6 +77,12 @@ M.show_plugins = function(plugins)
     end
 
     require('confman.ui.render').init().to_buf(plugins, buf)
+    vim.api.nvim_set_option_value(
+        'modifiable',
+        false,
+        { scope = 'local', buf = buf }
+    )
+
     local float_size = M.get_window_dimensions(buf)
 
     local win_opts = {
@@ -96,16 +114,23 @@ M.show_plugins = function(plugins)
     vim.keymap.set(
         'n',
         'q',
-        '<cmd>bw<CR>',
+        function() M.close_dialog(win, buf) end,
         {
             desc = 'b' .. buf .. 'Confman: close',
             noremap = true,
             buffer = buf,
         }
     )
+    vim.keymap.set('n', 't', function()
+        local selected = get_selected(plugins, win)
+        print(vim.inspect(selected))
+    end, {
+        desc = 'b' .. buf .. ' Confman: enable',
+        noremap = true,
+        buffer = buf,
+    })
     vim.keymap.set('n', 'e', function()
-        local lineno = vim.fn.getpos('.')
-        local to_enable = get_by_line(plugins, lineno)
+        local to_enable = get_selected(plugins, win)
         if to_enable ~= nil then
             to_enable.enable()
         end
@@ -115,8 +140,7 @@ M.show_plugins = function(plugins)
         buffer = buf,
     })
     vim.keymap.set('n', 'E', function()
-        local lineno = vim.fn.getpos('.')
-        local to_enable = get_by_line(plugins, lineno)
+        local to_enable = get_selected(plugins, win)
         if to_enable ~= nil then
             to_enable.enable(true)
         end
@@ -126,8 +150,7 @@ M.show_plugins = function(plugins)
         buffer = buf,
     })
     vim.keymap.set('n', 'd', function()
-        local lineno = vim.fn.getpos('.')
-        local to_disable = get_by_line(plugins, lineno)
+        local to_disable = get_selected(plugins)
         if to_disable ~= nil then
             to_disable.disable()
         end
@@ -136,6 +159,7 @@ M.show_plugins = function(plugins)
         noremap = true,
         buffer = buf,
     })
+    vim.api.nvim_set_current_win(win)
 end
 
 return M

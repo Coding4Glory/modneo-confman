@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local render = require('confman.ui.render')
+local render = require('confman.ui.render').init()
 
 ---@class TinyConfmanCommands
 local M = {}
@@ -34,18 +34,18 @@ M.setup = function(module)
     vim.api.nvim_create_user_command('ConfmanEnable', module.enable_command, { desc = 'enable plugin', bang = true })
     vim.api.nvim_create_user_command('ConfmanDisable', module.disable_command, { desc = 'disable plugin' })
     vim.api.nvim_create_user_command('Confman', function()
-        local all_plugins = module.list_enabled()
+        local all_plugins = module.list_available()
         local converted = require'confman.confitem'.convert(all_plugins)
         require'confman.ui.dialog'.show_plugins(converted)
     end, { desc = 'show Confman UI' })
 end
 
 M.unload = function()
-    vim.api.nvim_del_user_command('ConfmanList')
-    vim.api.nvim_del_user_command('ConfmanInfo')
-    vim.api.nvim_del_user_command('ConfmanEmable')
-    vim.api.nvim_del_user_command('ConfmanDisable')
-    vim.api.nvim_del_user_command('Confman')
+    for c, i in pairs(vim.api.nvim_get_commands({builtin = false})) do
+       if vim.startswith(c, 'Confman') then
+           vim.api.nvim_del_user_command(c)
+       end
+    end
     package.loaded['confman.commands'] = nil
     return M
 end

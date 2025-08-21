@@ -36,7 +36,7 @@ M.init = function()
 end
 
 ---prints the given plugins
----@param plugins table
+---@param plugins table a table of th form { 'cat' = { 'mod', ... }, ... }
 ---@param settings ConfmanOptions
 M.print_plugin_files = function(plugins, settings)
     local enabled = plugins[settings.link_dir]
@@ -49,18 +49,17 @@ M.print_plugin_files = function(plugins, settings)
 end
 
 ---renders the items to the buffer with the given id and sets the line numbers
----@param items table
+---@param items table a list of ConfmanConfItem instances
 ---@param buf integer buffer to write to
 ---@return table
 M.to_buf = function(items, buf)
     local line_counter = 1
     for c, pl in pairs(items) do
-        local last_line = vim.api.nvim_buf_line_count(buf)
-        vim.api.nvim_buf_set_lines(buf, last_line, last_line + 1, false, { c })
+        vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
         line_counter = line_counter + 1
         for _, p in ipairs(pl) do
-            local line = string.format('- %s%s', p.name, p.enabled and ' *' or '')
-            vim.api.nvim_buf_set_lines(buf, last_line, last_line + 1, false, { line })
+            local line = string.format('- %s%s', p.name, (p.enabled and ' *' or ''))
+            vim.api.nvim_buf_set_lines(buf, -2, -1, false, { line, '' })
             p.line_number = line_counter
             line_counter = line_counter + 1
         end

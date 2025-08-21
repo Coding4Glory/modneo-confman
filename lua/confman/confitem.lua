@@ -20,10 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@field options ConfmanOptions
 local F = {}
 
-F.init = function()
-    F.options = require('confman.config').options
-    return F
-end
+F.options = require('confman.config').options
 
 ---creates a new ConfmanConfItem
 ---@see ConfmanConfItem
@@ -62,6 +59,8 @@ F.new = function()
     M.disable = function()
         require('confman.core').disable(M.name)
     end
+
+    return M
 end
 
 ---creates a table of ConfmanConfItem instances based on the passed table
@@ -107,7 +106,6 @@ F.convert = function(plugins)
                 end
                 table.insert(result[item.category], item)
             end
-
         end
         align_enabled(result, enabled)
         return result
@@ -116,10 +114,12 @@ F.convert = function(plugins)
     -- already categorized
     for c, pl in pairs(plugins) do
         local converted = {}
-        for _, p in ipairs(pl) do
-            local item = F.new().init(p)
-            if not enabled_action(enabled, item) then
-                table.insert(converted, item)
+        if pl ~= nil and type(pl) == 'table' then
+            for _, p in ipairs(pl) do
+                local item = F.new().init(p)
+                if not enabled_action(enabled, item) then
+                    table.insert(converted, item)
+                end
             end
         end
         result[c] = converted

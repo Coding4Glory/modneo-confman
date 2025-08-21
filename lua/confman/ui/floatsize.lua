@@ -19,12 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@type function
 ---gets the number of columns in the longest line
 ---@param buf integer buffer number
----@param line_count integer? number of lines in the buffer, will be determined if not provided
 ---@return integer the column count taken from the longest line
-local function longest_line(buf, line_count)
-    line_count = line_count or vim.api.nvim_buf_line_count(buf)
+local function longest_line(buf)
     local longest = 0
-    for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, 1, line_count, true)) do
+    for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, 1, -1, true)) do
         local current = string.len(l)
         longest = (current > longest and current or longest)
     end
@@ -55,7 +53,7 @@ local M = {
 ---@return integer
 M.height = function(min)
     local max_height = M.ui_height - (M.y_border * 2)
-    return side_length(min or 1, max_height, M.content_height)
+    return side_length(min or 3, max_height, M.content_height)
 end
 
 ---@type function
@@ -64,7 +62,7 @@ end
 ---@return integer
 M.width = function(min)
     local max_width = M.ui_width - (M.x_border * 2)
-    return side_length(min or 1, max_width, M.content_width)
+    return side_length(min or 10, max_width, M.content_width)
 end
 
 ---@type function
@@ -78,7 +76,6 @@ end
 ---gets the start col for the floating window
 ---@return integer
 M.col = function()
-    print(vim.inspect(M))
     return (M.ui_width/2) - (M.width()/2)
 end
 
@@ -91,11 +88,9 @@ M.new = function(buf)
     M.ui_width = vim_ui.width
     M.ui_height = vim_ui.height
     M.content_height = line_count
-    M.content_width = longest_line(buf, line_count)
+    M.content_width = longest_line(buf)
     return M
 end
 
 return M
-
-
 

@@ -18,15 +18,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ---@class TinyConfmanLoader
 ---@field setup function loads the module
-return {
-    ---@param opts ConfmanOptions custom settings
-    setup = function(opts)
-        require('confman.config').setup(opts)
-        local module = require('confman.core').init()
-        if package.loaded['confman.commands'] == nil then
-            require('confman.commands').setup(module)
-            return
+local M = {}
+
+---@param opts ConfmanOptions? custom settings
+M.setup = function(opts)
+    require('confman.config').setup(opts)
+    local module = require('confman.core').init()
+    if package.loaded['confman.commands'] == nil then
+        require('confman.commands').setup(module)
+        return
+    end
+    require('confman.commands').unload().setup(module)
+end
+---same as setup but clears packages array first
+---@param opts ConfmanOptions? custom settings
+M.reload = function(opts)
+    require('confman.commands').unload()
+    local to_remove = {
+        'confman.ui.dialog',
+        'confman.ui.render',
+        'confman.ui.floatsize',
+        'confman.confitem',
+        'confman.core',
+        -- 'confman.commands', -- removes itself
+        'confman.config',
+    }
+    for _, pack in ipairs(to_remove) do
+        if package.loaded[pack] ~= nil then
+            package.loaded[pack] = nil
         end
-        require('confman.commands').unload().setup(module)
-    end,
-}
+    end
+    M.setup(opts)
+end
+
+return M
