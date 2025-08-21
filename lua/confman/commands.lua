@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 local render = require('confman.ui.render').init()
 
----@class TinyConfmanCommands
+---@class ConfmanCommands
 local M = {}
 
 ---@type function
