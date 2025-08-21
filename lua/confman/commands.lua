@@ -23,20 +23,18 @@ local M = {}
 
 ---@type function
 ---adds the plugin commands
----@param module ConfmanCore
-M.setup = function(module)
+---@param core ConfmanCore
+M.setup = function(core)
     vim.api.nvim_create_user_command('ConfmanList', function()
-        render.print_plugin_files(module.list_available(), module.options)
+        render.print_plugin_files(core.list_available(), core.options)
     end, { desc = 'list all plugins' })
     vim.api.nvim_create_user_command('ConfmanInfo', function()
-        render.print_plugin_files(module.list_enabled(), module.options)
+        render.print_plugin_files(core.list_enabled(), core.options)
     end, { desc = 'list enabled plugins' })
-    vim.api.nvim_create_user_command('ConfmanEnable', module.enable_command, { desc = 'enable plugin', bang = true })
-    vim.api.nvim_create_user_command('ConfmanDisable', module.disable_command, { desc = 'disable plugin' })
+    vim.api.nvim_create_user_command('ConfmanEnable', core.enable_command, { desc = 'enable plugin', bang = true })
+    vim.api.nvim_create_user_command('ConfmanDisable', core.disable_command, { desc = 'disable plugin' })
     vim.api.nvim_create_user_command('Confman', function()
-        local all_plugins = module.list_available()
-        local converted = require'confman.confitem'.convert(all_plugins)
-        require'confman.ui.dialog'.show_plugins(converted)
+        require'confman.ui.dialog'.show_plugins(core.get_all_items())
     end, { desc = 'show Confman UI' })
 end
 
