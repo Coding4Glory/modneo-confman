@@ -18,15 +18,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 local M = {}
 
----returns a marker to append if the plugin is enabled
----@param plugin string
----@param enabled table
+local function fmt_ln(name, enabled)
+    return string.format('- %s%s', name, (enabled and ' *' or ''))
+end
+
+---@param path string
 ---@return string
-local function mark_enabled(plugin, enabled)
-    for _, p in ipairs(enabled or {}) do
-        if p == plugin then return ' *' end
-    end
-    return ''
+local function format_fullpath(path, link_dir)
+    local enabled = vim.fs.basename(vim.fs.dirname(path)) == link_dir
+    return fmt_ln(vim.fs.basename(path), enabled)
+end
+
+---@param item ConfmanConfItem
+---@return string
+local function format_item(item)
+    return fmt_ln(item.name, item.enabled)
 end
 
 ---initialzes the renderer with the configuration
@@ -39,11 +45,15 @@ end
 ---@param plugins table a table of th form { 'cat' = { 'mod', ... }, ... }
 ---@param settings ConfmanOptions
 M.print_plugin_files = function(plugins, settings)
-    local enabled = plugins[settings.link_dir]
     for c, pl in pairs(plugins) do
         vim.print(c)
         for _, p in ipairs(pl) do
-            vim.print('- ' .. vim.fs.basename(p) .. mark_enabled(p, enabled))
+            if type(p) == 'string' then
+                vim.print(format_fullpath(p))
+            else
+                vim.print(format_item(p))
+            end
+
         end
     end
 end
@@ -58,8 +68,7 @@ M.to_buf = function(items, buf)
         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
         line_counter = line_counter + 1
         for _, p in ipairs(pl) do
-            local line = string.format('- %s%s', p.name, (p.enabled and ' *' or ''))
-            vim.api.nvim_buf_set_lines(buf, -2, -1, false, { line, '' })
+            vim.api.nvim_buf_set_lines(buf, -2, -1, false, { format_item(p), '' })
             p.line_number = line_counter
             line_counter = line_counter + 1
         end
