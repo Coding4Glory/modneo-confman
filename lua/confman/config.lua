@@ -46,14 +46,14 @@ M.options = defaults
 
 ---initializes the configuration
 ---will accumulate changes if called multiple times
----@param args ConfmanOptions
+---@param args ConfmanOptions?
 M.setup = function(args)
     M.options = vim.tbl_deep_extend('force', M.options or defaults, args or {})
     return M.options
 end
 
 ---reinitializes the configuration from defaults
----@param args ConfmanOptions
+---@param args ConfmanOptions?
 M.init = function(args)
     M.options = vim.tbl_deep_extend('force', defaults, args or {})
     return M.options

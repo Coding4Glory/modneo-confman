@@ -54,14 +54,14 @@ F.new = function(path, core)
         ---@param force boolean?
         ---@see ConfmanCore.enable
         M.enable = function(force)
-            core.enable(M.category, M.name, force)
+            core.enable_conf(M, force)
             M.enabled = true
         end
 
         ---disables this plugin
         ---@see ConfmanCore.disable
         M.disable = function()
-            core.disable(M.category, M.name)
+            core.disable_conf(M)
             M.enabled = false
         end
 

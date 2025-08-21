@@ -38,7 +38,8 @@ M.setup = function(core)
     end, { desc = 'show Confman UI' })
 end
 
-M.unload = function()
+---removes the commands prefixed with Confman
+M.remove = function()
     for c, i in pairs(vim.api.nvim_get_commands({builtin = false})) do
        if vim.startswith(c, 'Confman') then
            vim.api.nvim_del_user_command(c)

@@ -20,20 +20,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@field setup function loads the module
 local M = {}
 
+---initializes the plugin with default options
+M.init = function()
+    require('confman.config').init()
+    local core = require('confman.core').init()
+    require('confman.commands').setup(core)
+end
+
+---performs plugin setup with given options
 ---@param opts ConfmanOptions? custom settings
 M.setup = function(opts)
     require('confman.config').setup(opts)
-    local module = require('confman.core').init()
+    local core = require('confman.core').init()
     if package.loaded['confman.commands'] == nil then
-        require('confman.commands').setup(module)
+        require('confman.commands').setup(core)
         return
     end
-    require('confman.commands').unload().setup(module)
+    require('confman.commands').remove().setup(core)
+    return core
 end
----same as setup but clears packages array first
----@param opts ConfmanOptions? custom settings
-M.reload = function(opts)
-    require('confman.commands').unload()
+
+---removes the plugin as far as possible
+M.remove = function ()
+    require('confman.commands').remove()
     local to_remove = {
         'confman.ui.dialog',
         'confman.ui.render',
@@ -48,7 +57,13 @@ M.reload = function(opts)
             package.loaded[pack] = nil
         end
     end
-    M.setup(opts)
+end
+
+---calls rmove and afterwards setup
+---@param opts ConfmanOptions? custom settings
+M.reload = function(opts)
+    M.remove()
+   M.setup(opts)
 end
 
 return M

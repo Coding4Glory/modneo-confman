@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
+
+
 ---@class ConfmanCore
 ---@field options ConfmanOptions
 local M = {}
@@ -89,18 +91,10 @@ M.list_enabled = function()
     return M.get_configs(M.options.link_dir)
 end
 
----enables the given configuration file
----@param category string module category
----@param name string the name of the config file within the category
----@param force boolean? force re-enabling / overriding
-M.enable = function(category, name, force)
-    local item = M.get_item(category, name)
-
-    if item == nil then
-        print(string.format('Config file matching %s/%s not found', category, name))
-        return
-    end
-
+---enables the given config item
+---@type function
+---@param item ConfmanConfItem
+M.enable_conf = function(item, force)
     local uv = (vim.uv or vim.loop)
     local dst_file = M.get_link_name(item.category, item.name)
     if uv.fs_stat(dst_file) then
@@ -118,6 +112,20 @@ M.enable = function(category, name, force)
     uv.fs_symlink(item.realpath, dst_file)
 end
 
+---enables the given configuration file
+---@param category string module category
+---@param name string the name of the config file within the category
+---@param force boolean? force re-enabling / overriding
+M.enable = function(category, name, force)
+    local item = M.get_item(category, name)
+    if item == nil then
+        print(string.format('Config file matching %s/%s not found', category, name))
+        return
+    end
+
+    M.enable_conf(item, force)
+end
+
 ---enables the given plugin
 ---@type function
 ---@param opts vim.api.keyset.create_user_command.command_args
@@ -126,6 +134,14 @@ M.enable_command = function(opts)
         M.enable(cat, mod, opts.bang)
     end
 end
+
+---disables the given config item
+---@type function
+---@param item ConfmanConfItem
+M.disable_conf = function(item)
+    M.disable(item.category, item.name)
+end
+
 ---disables the plugin identified by category and name
 ---@param cat string the plugin category
 ---@param name string the name of the config file
@@ -136,6 +152,7 @@ M.disable = function(cat, name)
         uv.fs_unlink(link_file)
     end
 end
+
 ---disables the given plugin
 ---expects a category/name combination in args
 ---@type function
@@ -146,6 +163,7 @@ M.disable_command = function(opts)
     end
 end
 
+---@type function
 ---@return integer 1 if the link exists otherwise 0
 M.enabled = function(cat, name)
     if (vim.uv or vim.loop).fs_stat(M.get_link_name(cat, name)) ~= nil then

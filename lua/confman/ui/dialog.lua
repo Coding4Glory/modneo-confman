@@ -68,7 +68,6 @@ end
 
 ---creates a floating window for the given buffer
 ---@type function
----@param buf integer buffer to show as floating
 ---@param plugins table
 M.show_plugins = function(plugins)
     local buf = M.new_buffer()
@@ -121,14 +120,6 @@ M.show_plugins = function(plugins)
             buffer = buf,
         }
     )
-    vim.keymap.set('n', 't', function()
-        local selected = get_selected(plugins, win)
-        print(vim.inspect(selected))
-    end, {
-        desc = 'b' .. buf .. ' Confman: enable',
-        noremap = true,
-        buffer = buf,
-    })
     vim.keymap.set('n', 'e', function()
         local to_enable = get_selected(plugins, win)
         if to_enable ~= nil then
