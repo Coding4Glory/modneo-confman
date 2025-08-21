@@ -29,7 +29,7 @@ end
 ---creates a new ConfmanConfItem
 ---@see ConfmanConfItem
 ---@return ConfmanConfItem
-F.new = function()
+F.new = function(path, core)
     ---@class ConfmanConfItem
     ---@field category string? the plugin category
     ---@field name string the name of the plugin config file
@@ -42,7 +42,7 @@ F.new = function()
     ---@param path string the absolute path to the plugin
     ---@param core ConfmanCore
     ---@return ConfmanConfItem
-    M.init = function(path, core)
+    M.init = function()
         M.abspath = path
         M.realpath = (vim.uv or vim.loop).fs_realpath(path)
         M.category = vim.fs.basename(vim.fs.dirname(M.realpath))
@@ -69,7 +69,7 @@ F.new = function()
         return M
     end
 
-    return M
+    return M.init()
 end
 
 ---creates a table of ConfmanConfItem instances based on the passed table
@@ -85,7 +85,7 @@ F.convert = function(plugins, core)
     -- simple table without categories
     if table.maxn(plugins) > 0 then
         for _, file in ipairs(plugins) do
-            local item = F.new().init(file, core)
+            local item = F.new(file, core)
             if result[item.category] == nil then
                 result[item.category] = {}
             end
@@ -101,7 +101,7 @@ F.convert = function(plugins, core)
         local converted = {}
         if pl ~= nil and type(pl) == 'table' then
             for _, file in ipairs(pl) do
-                local item = F.new().init(file, core)
+                local item = F.new(file, core)
                 table.insert(converted, item)
             end
         end

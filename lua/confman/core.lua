@@ -73,7 +73,7 @@ M.get_item = function(category, name)
     local found = vim.fn.glob(search_path, false, true, false)
 
     if table.maxn(found) == 1 then
-        M.item_factory.new().init(found[1], M)
+        M.item_factory.new(found[1], M)
     end
 end
 
