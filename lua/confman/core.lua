@@ -24,69 +24,9 @@ local M = {}
 ---@private
 M.options = {}
 
----@param settings ConfmanOptions
----@return string
----@deprecated use method instead
-local function get_plugin_dir(settings)
-    return vim.fs.joinpath(settings.config_dir, settings.plugin_dir)
-end
-
----@param settings ConfmanOptions
----@param name string
----@deprecated use method instead
-local function build_link_name(settings, name)
-    return vim.fs.joinpath(settings.config_dir, settings.plugin_dir, settings.link_dir, name)
-end
-
-local default_filter = '.[lv][iu][am]'
-
----Gets the files in basepath maching the given filter.
----If no filter is given the default filter is used.
----@param basepath string
----@param filter string used to apply a glob pattern
----@param include_deadlinks boolean? may be passed to include dead links, defaults to false
----@return table
-local function get_files(basepath, filter, include_deadlinks)
-    include_deadlinks = include_deadlinks or false
-    local path = vim.fs.joinpath(basepath, filter)
-    return vim.fn.glob(path, false, true, include_deadlinks)
-end
-
----gets the categories and their contained files
----@param settings ConfmanOptions
----@param category string? Optional: the category to show
----@return table
----@deprecated use method instead
-local function get_plugins(settings, category)
-    local plugin_path = get_plugin_dir(settings)
-    local plugins = {}
-    for folder, type in vim.fs.dir(plugin_path) do
-        if type ~= 'directory' then goto continue end
-        if category ~= nil and category ~= folder then goto continue end
-
-        local cat_key = vim.fs.basename(folder)
-        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), '*' .. settings.default_filter, category == M.options.link_dir)
-
-        ::continue::
-    end
-    return plugins
-end
-
----Tries to find the file according to category and name.
----@param settings ConfmanOptions
----@param category string
----@param name string
----@deprecated use method get_item instead
-local function find_source_file(settings, category, name)
-    local search_path = vim.fs.joinpath(settings.plugin_dir, category, name)
-    local uv = vim.uv or vim.loop
-    local found = nil
-    return found
-end
-
 ---gets the glob pattern for the given filename using the default_filter value
 ---@param name string? the filename, ommitting or nil will result in an asterisk `*`.
-local function get_file_pattern(name)
+M.get_file_pattern = function(name)
     name = name or '*'
     if name:match('.+%' .. M.options.default_filter ..'$') == nil then
         return name .. M.options.default_filter
@@ -113,7 +53,7 @@ M.get_configs = function(category)
     local search_path = vim.fs.joinpath(
         M.get_plugin_dir(),
         category or '**',
-        get_file_pattern()
+        M.get_file_pattern()
     )
     local plugins_files = vim.fn.glob(search_path, false, true, true)
     return M.item_factory.convert(plugins_files, M)
@@ -127,7 +67,7 @@ M.get_item = function(category, name)
     local search_path = vim.fs.joinpath(
         M.get_plugin_dir(),
         category,
-        get_file_pattern(name)
+        M.get_file_pattern(name)
     )
 
     local found = vim.fn.glob(search_path, false, true, false)
@@ -140,13 +80,13 @@ end
 ---lists all available plugins
 ---@type function
 M.list_available = function()
-    return get_plugins(M.options)
+    return M.get_configs()
 end
 
 ---lists the enabled plugins
 ---@type function
 M.list_enabled = function()
-    return get_plugins(M.options, M.options.link_dir)
+    return M.get_configs(M.options.link_dir)
 end
 
 ---enables the given configuration file
@@ -156,22 +96,26 @@ end
 M.enable = function(category, name, force)
     local item = M.get_item(category, name)
 
-    if src_file == nil then
+    if item == nil then
         print(string.format('Config file matching %s/%s not found', category, name))
         return
     end
 
     local uv = (vim.uv or vim.loop)
-    local dst_file = M.get_link_name(category, name)
+    local dst_file = M.get_link_name(item.category, item.name)
     if uv.fs_stat(dst_file) then
         if not (force or false) then
-            print('!! Plugin already enabled call ConfmanEnable! to recreate link')
+            if uv.fs_realpath(dst_file) ~= item.realpath then
+                vim.print('!! Link has different target, add bang ! to override')
+                return
+            end
+            vim.print('!! Plugin already enabled, add bang ! to recreate link')
             return
         end
         uv.fs_unlink(dst_file)
     end
 
-    uv.fs_symlink(src_file, dst_file)
+    uv.fs_symlink(item.realpath, dst_file)
 end
 
 ---enables the given plugin

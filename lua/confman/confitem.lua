@@ -61,7 +61,7 @@ F.new = function()
         ---disables this plugin
         ---@see ConfmanCore.disable
         M.disable = function()
-            core.disable(M.name)
+            core.disable(M.category, M.name)
             M.enabled = false
         end
 
