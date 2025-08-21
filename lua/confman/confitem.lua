@@ -31,7 +31,7 @@ end
 ---@return ConfmanConfItem
 F.new = function()
     ---@class ConfmanConfItem
-    ---@field category string the plugin category
+    ---@field category string? the plugin category
     ---@field name string the name of the plugin config file
     ---@field line_number integer contains the line number after set_line was called
     ---@field abspath string the absolute path to the plugin file
@@ -43,11 +43,11 @@ F.new = function()
     ---@param core ConfmanCore
     ---@return ConfmanConfItem
     M.init = function(path, core)
-        M.category = vim.fs.basename(vim.fs.dirname(path))
-        M.name = vim.fs.basename(path)
         M.abspath = path
         M.realpath = (vim.uv or vim.loop).fs_realpath(path)
-        M.enabled = M.category == F.options.link_dir
+        M.category = vim.fs.basename(vim.fs.dirname(M.realpath))
+        M.name = vim.fs.basename(M.realpath) or path
+        M.enabled = vim.fs.basename(vim.fs.dirname(M.abspath)) == F.options.link_dir
 
         ---enables this plugin
         ---@param force boolean?
@@ -56,6 +56,7 @@ F.new = function()
             core.enable(M.category, M.name, force)
             M.enabled = true
         end
+
         ---disables this plugin
         ---@see ConfmanCore.disable
         M.disable = function()
@@ -63,13 +64,10 @@ F.new = function()
             M.enabled = false
         end
 
-        -- check enabled to avoid dereferencing links outside enabled folder
-        if M.enabled and M.abspath ~= M.realpath then
-            M.category = vim.fs.basename(vim.fs.dirname(M.realpath)) or M.category
-        end
         M.line_number = 0
         return M
     end
+
     return M
 end
 

@@ -43,12 +43,11 @@ local default_filter = '.[lv][iu][am]'
 ---Gets the files in basepath maching the given filter.
 ---If no filter is given the default filter is used.
 ---@param basepath string
----@param filter string? may be used to apply a glob pattern, can be ommited with null
+---@param filter string used to apply a glob pattern
 ---@param include_deadlinks boolean? may be passed to include dead links, defaults to false
 ---@return table
 local function get_files(basepath, filter, include_deadlinks)
     include_deadlinks = include_deadlinks or false
-    filter = filter or ('*' .. default_filter)
     local path = vim.fs.joinpath(basepath, filter)
     return vim.fn.glob(path, false, true, include_deadlinks)
 end
@@ -66,14 +65,14 @@ local function get_plugins(settings, category)
         if category ~= nil and category ~= folder then goto continue end
 
         local cat_key = vim.fs.basename(folder)
-        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), nil, category == M.options.link_dir)
+        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), '*' .. settings.default_filter, category == M.options.link_dir)
 
         ::continue::
     end
     return plugins
 end
 
----Determines the correct file name
+---Tries to find the file according to category and name.
 ---@param settings ConfmanOptions
 ---@param category string
 ---@param name string
@@ -82,7 +81,7 @@ local function find_source_file(settings, category, name)
     local uv = vim.uv or vim.loop
     local found = nil
 
-    for _, suffix in ipairs(get_files(settings.plugin_dir)) do
+    for _, suffix in ipairs(get_files(settings.plugin_dir, '*' .. settings.default_filter)) do
         local proto = vim.endswith(path_prefix, suffix) and path_prefix or path_prefix .. '.' .. suffix
         if uv.fs_stat(proto) ~= nil then
             found = proto
@@ -106,14 +105,18 @@ end
 
 ---gets a list with all plugins
 ---@param category string? may be used to restrict to specific category
-M.get_plugins = function(category)
+M.get_all_items = function(category)
     local search_path = vim.fs.joinpath(
-        get_plugin_dir(M.options),
+        M.get_plugin_dir(),
         category or '**',
-        '*' .. default_filter
+        '*' .. M.options.default_filter
     )
     local plugins_files = vim.fn.glob(search_path, false, true, true)
     return M.item_factory.convert(plugins_files, M)
+end
+
+M.get_item = function(category, name)
+
 end
 
 ---lists all available plugins
@@ -141,7 +144,7 @@ M.enable = function(cat, mod, force)
     end
 
     local uv = (vim.uv or vim.loop)
-    local dst_file = build_link_name(M.options, mod)
+    local dst_file = M.get_link_name(cat, mod)
     if uv.fs_stat(dst_file) then
         if not (force or false) then
             print('!! Plugin already enabled call ConfmanEnable! to recreate link')
@@ -163,7 +166,7 @@ M.enable_command = function(opts)
 end
 
 M.disable = function(name)
-    local link_file = build_link_name(M.options, name)
+    local link_file = M.get_link_name(name)
     local uv = (vim.uv or vim.loop)
     if uv.fs_stat(link_file) ~= nil then
         uv.fs_unlink(link_file)
@@ -181,7 +184,7 @@ end
 
 ---@return integer 1 if the link exists otherwise 0
 M.enabled = function(cat, name)
-    if (vim.uv or vim.loop).fs_stat(build_link_name(M.options, name)) ~= nil then
+    if (vim.uv or vim.loop).fs_stat(M.get_link_name(cat, name)) ~= nil then
         return 1
     end
     return 0

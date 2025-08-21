@@ -20,21 +20,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 local M = {}
 
 ---@class ConfmanOptions
----@field link_dir string name of the directory to create the symlinks
----the same directory has to be set in lazy, will be created within plugin_dir
 local defaults = {
     ---the directory where the plugin categories
     ---are located, defaults to lua/plugins
     ---@type string 
     plugin_dir = vim.fs.joinpath('lua', 'plugins'),
     ---the directory where links to enabled plugins shall be stored
-    ---if not existing the directory will be created in the plugin_dir
+    ---if not existing the directory will be created in the plugin_dir.
     ---@type string
+    ---The same directory has to be set in lazy, will be created within plugin_dir
     link_dir = 'enabled',
     ---the directory where the user configuration is stored, defaults to
     ---`~/.config/nvim.` the default value is retrieved via `stdpath`
     ---@type string
     config_dir = vim.fn.stdpath('config'),
+    ---the suffix part of a file glob pattern without leading asterisk
+    ---has to start with a dot (will not be added automatically) except your system
+    ---does not use dot's for file suffix separation (is there any where neovim runs on?).
+    ---@type string 
+    default_filter = '.[lv][iu][am]',
 }
 
 ---@type ConfmanOptions
@@ -53,6 +57,17 @@ end
 M.init = function(args)
     M.options = vim.tbl_deep_extend('force', defaults, args or {})
     return M.options
+end
+
+---gets the glob pattern fir the given filename using the default_filter value
+---@param name string? the filename, ommitting or nil will result in an asterisk `*`.
+M.get_pattern = function(name)
+    name = name or '*'
+    if name:match('.+%' .. M.options.default_filter ..'$') == nil then
+        return name .. M.options.default_filter
+    end
+    --- has already a matching suffix
+    return name
 end
 
 return M

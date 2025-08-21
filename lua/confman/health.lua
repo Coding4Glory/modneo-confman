@@ -28,7 +28,7 @@ return {
 
         local plugin_dir = core.get_plugin_dir()
         if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then
-            local cats = core.get_plugins()
+            local cats = core.get_all_items()
             local cat_count = 0
             local plug_count = 0
             for _, pl in pairs(cats) do
