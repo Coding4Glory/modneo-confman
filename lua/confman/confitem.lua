@@ -20,7 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@field options ConfmanOptions
 local F = {}
 
-F.options = require('confman.config').options
+---@param opts ConfmanOptions
+F.setup = function(opts)
+    F.options = opts or require('confman.config').options
+    return F
+end
 
 ---creates a new ConfmanConfItem
 ---@see ConfmanConfItem
@@ -36,37 +40,43 @@ F.new = function()
 
     ---initializes the instance
     ---@param path string the absolute path to the plugin
-    ---@param enabled boolean? a value indicating if the plugin is enabled
+    ---@param core ConfmanCore
     ---@return ConfmanConfItem
-    M.init = function(path, enabled)
+    M.init = function(path, core)
         M.category = vim.fs.basename(vim.fs.dirname(path))
         M.name = vim.fs.basename(path)
         M.abspath = path
-        M.enabled = enabled or M.category == F.options.link_dir
+        M.realpath = (vim.uv or vim.loop).fs_realpath(path)
+        M.enabled = M.category == F.options.link_dir
+
+        ---enables this plugin
+        ---@param force boolean?
+        ---@see ConfmanCore.enable
+        M.enable = function(force)
+            core.enable(M.category, M.name, force)
+            M.enabled = true
+        end
+        ---disables this plugin
+        ---@see ConfmanCore.disable
+        M.disable = function()
+            core.disable(M.name)
+            M.enabled = false
+        end
+
+        -- check enabled to avoid dereferencing links outside enabled folder
+        if M.enabled and M.abspath ~= M.realpath then
+            M.category = vim.fs.basename(vim.fs.dirname(M.realpath)) or M.category
+        end
         M.line_number = 0
         return M
     end
-
-    ---enables this plugin
-    ---@param force boolean?
-    ---@see TinyConfmanCore.enable
-    M.enable = function(force)
-        require('confman.core').enable(M.category, M.name, force)
-    end
-
-    ---disables this plugin
-    ---@see TinyConfmanCore.disable
-    M.disable = function()
-        require('confman.core').disable(M.name)
-    end
-
     return M
 end
 
 ---creates a table of ConfmanConfItem instances based on the passed table
 ---@param plugins table
 ---@return table a categorized table with ConfmanConfItem lists as values
-F.convert = function(plugins)
+F.convert = function(plugins, core)
     ---aligns the table so enabled plugins are marked as such
     local function align_enabled(converted, enabled)
         for _, pl in pairs(converted) do
@@ -98,8 +108,8 @@ F.convert = function(plugins)
 
     -- simple table without categories
     if table.maxn(plugins) > 0 then
-        for _, p in ipairs(plugins) do
-            local item = F.new().init(p)
+        for _, file in ipairs(plugins) do
+            local item = F.new().init(file, core)
             if not enabled_action(enabled, item) then
                 if result[item.category] == nil then
                     result[item.category] = {}
@@ -115,8 +125,8 @@ F.convert = function(plugins)
     for c, pl in pairs(plugins) do
         local converted = {}
         if pl ~= nil and type(pl) == 'table' then
-            for _, p in ipairs(pl) do
-                local item = F.new().init(p)
+            for _, file in ipairs(pl) do
+                local item = F.new().init(file, core)
                 if not enabled_action(enabled, item) then
                     table.insert(converted, item)
                 end

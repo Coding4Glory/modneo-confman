@@ -23,7 +23,7 @@ local M = {}
 
 ---@type function
 ---adds the plugin commands
----@param module TinyConfmanCore
+---@param module ConfmanCore
 M.setup = function(module)
     vim.api.nvim_create_user_command('ConfmanList', function()
         render.print_plugin_files(module.list_available(), module.options)

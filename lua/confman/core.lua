@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class TinyConfmanCore
+---@class ConfmanCore
 ---@field options ConfmanOptions
 local M = {}
 
@@ -26,34 +26,39 @@ M.options = {}
 
 ---@param settings ConfmanOptions
 ---@return string
+---@deprecated use method instead
 local function get_plugin_dir(settings)
     return vim.fs.joinpath(settings.config_dir, settings.plugin_dir)
 end
 
 ---@param settings ConfmanOptions
 ---@param name string
-local function get_link_file(settings, name)
+---@deprecated use method instead
+local function build_link_name(settings, name)
     return vim.fs.joinpath(settings.config_dir, settings.plugin_dir, settings.link_dir, name)
 end
 
+local default_filter = '.[lv][iu][am]'
+
 ---Gets the files in basepath maching the given filter.
----If no filter is given only files or directories not containing dots will be returned.
----@param basepath any
+---If no filter is given the default filter is used.
+---@param basepath string
 ---@param filter string? may be used to apply a glob pattern, can be ommited with null
+---@param include_deadlinks boolean? may be passed to include dead links, defaults to false
 ---@return table
-local function get_files(basepath, filter, all_links)
-    all_links = all_links or false
-    filter = filter or '*.[lv][iu][am]'
+local function get_files(basepath, filter, include_deadlinks)
+    include_deadlinks = include_deadlinks or false
+    filter = filter or ('*' .. default_filter)
     local path = vim.fs.joinpath(basepath, filter)
-    return vim.fn.glob(path, false, true, all_links)
+    return vim.fn.glob(path, false, true, include_deadlinks)
 end
 
 ---gets the categories and their contained files
 ---@param settings ConfmanOptions
 ---@param category string? Optional: the category to show
 ---@return table
+---@deprecated use method instead
 local function get_plugins(settings, category)
-    if category == nil then print('nocat') end
     local plugin_path = get_plugin_dir(settings)
     local plugins = {}
     for folder, type in vim.fs.dir(plugin_path) do
@@ -61,7 +66,7 @@ local function get_plugins(settings, category)
         if category ~= nil and category ~= folder then goto continue end
 
         local cat_key = vim.fs.basename(folder)
-        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), nil, category == settings.link_dir)
+        plugins[cat_key] = get_files(vim.fs.joinpath(plugin_path, cat_key), nil, category == M.options.link_dir)
 
         ::continue::
     end
@@ -77,13 +82,38 @@ local function find_source_file(settings, category, name)
     local uv = vim.uv or vim.loop
     local found = nil
 
-    for _, suffix in ipairs(get_files(settings)) do
+    for _, suffix in ipairs(get_files(settings.plugin_dir)) do
         local proto = vim.endswith(path_prefix, suffix) and path_prefix or path_prefix .. '.' .. suffix
-        if uv.fs_stat(proto) then
+        if uv.fs_stat(proto) ~= nil then
             found = proto
         end
     end
     return found
+end
+
+---@param settings ConfmanOptions
+---@return string
+M.get_plugin_dir = function()
+    return vim.fs.joinpath(M.options.config_dir, M.options.plugin_dir)
+end
+
+---@param category string the plugin category
+---@param filename string must be the exact basename (with suffix)
+M.get_link_name = function(category, filename)
+    return vim.fs.joinpath(M.get_plugin_dir(), M.options.link_dir, category .. '-' .. filename)
+end
+
+
+---gets a list with all plugins
+---@param category string? may be used to restrict to specific category
+M.get_plugins = function(category)
+    local search_path = vim.fs.joinpath(
+        get_plugin_dir(M.options),
+        category or '**',
+        '*' .. default_filter
+    )
+    local plugins_files = vim.fn.glob(search_path, false, true, true)
+    return M.item_factory.convert(plugins_files, M)
 end
 
 ---lists all available plugins
@@ -111,7 +141,7 @@ M.enable = function(cat, mod, force)
     end
 
     local uv = (vim.uv or vim.loop)
-    local dst_file = get_link_file(M.options, mod)
+    local dst_file = build_link_name(M.options, mod)
     if uv.fs_stat(dst_file) then
         if not (force or false) then
             print('!! Plugin already enabled call ConfmanEnable! to recreate link')
@@ -133,7 +163,7 @@ M.enable_command = function(opts)
 end
 
 M.disable = function(name)
-    local link_file = get_link_file(M.options, name)
+    local link_file = build_link_name(M.options, name)
     local uv = (vim.uv or vim.loop)
     if uv.fs_stat(link_file) ~= nil then
         uv.fs_unlink(link_file)
@@ -151,7 +181,7 @@ end
 
 ---@return integer 1 if the link exists otherwise 0
 M.enabled = function(cat, name)
-    if (vim.uv or vim.loop).fs_stat(get_link_file(M.options, name)) ~= nil then
+    if (vim.uv or vim.loop).fs_stat(build_link_name(M.options, name)) ~= nil then
         return 1
     end
     return 0
@@ -159,9 +189,10 @@ end
 
 ---call on require to apply settings
 ---@type function
----@return TinyConfmanCore
+---@return ConfmanCore
 M.init = function()
     M.options = require('confman.config').options
+    M.item_factory = require('confman.confitem').setup(M.options)
     return M
 end
 
