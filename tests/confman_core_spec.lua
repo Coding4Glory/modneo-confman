@@ -6,6 +6,7 @@ local fixture_settings = config.setup({
     plugin_dir = 'tests/fixture',
     link_dir = 'enabled'
 })
+
 local function count_configs(t)
     local i = 0
     for _, x in pairs(t) do
@@ -43,7 +44,7 @@ end)
 
 describe('test plugin functions:', function()
     it('gets a table with all plugins', function()
-        local sut = core.init(fixture_settings)
+        local sut = core.init()
         local all_plugins = sut.list_available()
         assert.is_table(all_plugins)
         assert.is_equal(3, count_categories(all_plugins))
@@ -51,10 +52,25 @@ describe('test plugin functions:', function()
     end)
 
     it('gets a table with enabled plugins', function()
-        local sut = core.init(fixture_settings)
+        local sut = core.init()
         local enabled_plugins = sut.list_enabled()
         assert.is_table(enabled_plugins)
         assert.is_equal(1, count_categories(enabled_plugins))
+        assert.is_equal(0, count_configs(enabled_plugins))
+    end)
+    it('new - gets a table with all plugins', function()
+        local sut = core.init()
+        local all_plugins = sut.get_plugins()
+        assert.is_table(all_plugins)
+        assert.is_equal(2, count_categories(all_plugins))
+        assert.is_equal(3, count_configs(all_plugins))
+    end)
+
+    it('new - gets a table with enabled plugins', function()
+        local sut = core.init()
+        local enabled_plugins = sut.get_plugins(config.options.link_dir)
+        assert.is_table(enabled_plugins)
+        assert.is_equal(0, count_categories(enabled_plugins))
         assert.is_equal(0, count_configs(enabled_plugins))
     end)
 
