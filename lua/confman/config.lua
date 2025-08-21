@@ -59,15 +59,4 @@ M.init = function(args)
     return M.options
 end
 
----gets the glob pattern fir the given filename using the default_filter value
----@param name string? the filename, ommitting or nil will result in an asterisk `*`.
-M.get_pattern = function(name)
-    name = name or '*'
-    if name:match('.+%' .. M.options.default_filter ..'$') == nil then
-        return name .. M.options.default_filter
-    end
-    --- has already a matching suffix
-    return name
-end
-
 return M

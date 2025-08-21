@@ -76,21 +76,25 @@ end
 ---@param settings ConfmanOptions
 ---@param category string
 ---@param name string
+---@deprecated use method get_item instead
 local function find_source_file(settings, category, name)
-    local path_prefix = vim.fs.joinpath(settings.plugin_dir, category, name)
+    local search_path = vim.fs.joinpath(settings.plugin_dir, category, name)
     local uv = vim.uv or vim.loop
     local found = nil
-
-    for _, suffix in ipairs(get_files(settings.plugin_dir, '*' .. settings.default_filter)) do
-        local proto = vim.endswith(path_prefix, suffix) and path_prefix or path_prefix .. '.' .. suffix
-        if uv.fs_stat(proto) ~= nil then
-            found = proto
-        end
-    end
     return found
 end
 
----@param settings ConfmanOptions
+---gets the glob pattern for the given filename using the default_filter value
+---@param name string? the filename, ommitting or nil will result in an asterisk `*`.
+local function get_file_pattern(name)
+    name = name or '*'
+    if name:match('.+%' .. M.options.default_filter ..'$') == nil then
+        return name .. M.options.default_filter
+    end
+    --- has already a matching suffix
+    return name
+end
+
 ---@return string
 M.get_plugin_dir = function()
     return vim.fs.joinpath(M.options.config_dir, M.options.plugin_dir)
@@ -105,18 +109,32 @@ end
 
 ---gets a list with all plugins
 ---@param category string? may be used to restrict to specific category
-M.get_all_items = function(category)
+M.get_configs = function(category)
     local search_path = vim.fs.joinpath(
         M.get_plugin_dir(),
         category or '**',
-        '*' .. M.options.default_filter
+        get_file_pattern()
     )
     local plugins_files = vim.fn.glob(search_path, false, true, true)
     return M.item_factory.convert(plugins_files, M)
 end
 
+---gets a single item by category and name
+---@return ConfmanConfItem
+---if the name is occupied multiple times (e. g. with .lua and .vim) pass
+---the name with the suffix appended
 M.get_item = function(category, name)
+    local search_path = vim.fs.joinpath(
+        M.get_plugin_dir(),
+        category,
+        get_file_pattern(name)
+    )
 
+    local found = vim.fn.glob(search_path, false, true, false)
+
+    if table.maxn(found) == 1 then
+        M.item_factory.new().init(found[1], M)
+    end
 end
 
 ---lists all available plugins
@@ -132,19 +150,19 @@ M.list_enabled = function()
 end
 
 ---enables the given configuration file
----@param cat string module category
----@param mod string the name of the config file within the category
+---@param category string module category
+---@param name string the name of the config file within the category
 ---@param force boolean? force re-enabling / overriding
-M.enable = function(cat, mod, force)
-    local src_file = find_source_file(M.options, cat, mod)
+M.enable = function(category, name, force)
+    local item = M.get_item(category, name)
 
     if src_file == nil then
-        print(string.format('Config file matching %s/%s not found', cat, mod))
+        print(string.format('Config file matching %s/%s not found', category, name))
         return
     end
 
     local uv = (vim.uv or vim.loop)
-    local dst_file = M.get_link_name(cat, mod)
+    local dst_file = M.get_link_name(category, name)
     if uv.fs_stat(dst_file) then
         if not (force or false) then
             print('!! Plugin already enabled call ConfmanEnable! to recreate link')
@@ -164,9 +182,11 @@ M.enable_command = function(opts)
         M.enable(cat, mod, opts.bang)
     end
 end
-
-M.disable = function(name)
-    local link_file = M.get_link_name(name)
+---disables the plugin identified by category and name
+---@param cat string the plugin category
+---@param name string the name of the config file
+M.disable = function(cat, name)
+    local link_file = M.get_link_name(cat, name)
     local uv = (vim.uv or vim.loop)
     if uv.fs_stat(link_file) ~= nil then
         uv.fs_unlink(link_file)
@@ -177,8 +197,8 @@ end
 ---@type function
 ---@param opts vim.api.keyset.create_user_command.command_args
 M.disable_command = function(opts)
-    for _, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
-        M.disable(mod)
+    for cat, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
+        M.disable(cat, mod)
     end
 end
 

@@ -47,7 +47,8 @@ F.new = function()
         M.realpath = (vim.uv or vim.loop).fs_realpath(path)
         M.category = vim.fs.basename(vim.fs.dirname(M.realpath))
         M.name = vim.fs.basename(M.realpath) or path
-        M.enabled = vim.fs.basename(vim.fs.dirname(M.abspath)) == F.options.link_dir
+        M.enabled = vim.fs.basename(vim.fs.dirname(M.abspath))
+            == F.options.link_dir
 
         ---enables this plugin
         ---@param force boolean?
@@ -75,30 +76,7 @@ end
 ---@param plugins table
 ---@return table a categorized table with ConfmanConfItem lists as values
 F.convert = function(plugins, core)
-    ---aligns the table so enabled plugins are marked as such
-    local function align_enabled(converted, enabled)
-        for _, pl in pairs(converted) do
-            for _, p in ipairs(pl) do
-                if enabled[p.name] ~= nil then
-                    p.enabled = true
-                end
-            end
-        end
-    end
-
-    ---used to avoid redundant code below
-    ---@param enabled table
-    ---@param item ConfmanConfItem
-    local function enabled_action(enabled, item)
-        if item.enabled then
-            enabled[item.name] = true
-            return true
-        end
-        return false
-    end
-
     local result = {}
-    local enabled = {}
 
     if plugins == nil then
         return result
@@ -108,31 +86,28 @@ F.convert = function(plugins, core)
     if table.maxn(plugins) > 0 then
         for _, file in ipairs(plugins) do
             local item = F.new().init(file, core)
-            if not enabled_action(enabled, item) then
-                if result[item.category] == nil then
-                    result[item.category] = {}
-                end
-                table.insert(result[item.category], item)
+            if result[item.category] == nil then
+                result[item.category] = {}
             end
+            table.insert(result[item.category], item)
         end
-        align_enabled(result, enabled)
+        -- align_enabled(result, enabled)
         return result
     end
 
     -- already categorized
+    -- will no longer be required soon
     for c, pl in pairs(plugins) do
         local converted = {}
         if pl ~= nil and type(pl) == 'table' then
             for _, file in ipairs(pl) do
                 local item = F.new().init(file, core)
-                if not enabled_action(enabled, item) then
-                    table.insert(converted, item)
-                end
+                table.insert(converted, item)
             end
         end
         result[c] = converted
     end
-    align_enabled(result, enabled)
+    -- align_enabled(result, enabled)
     return result
 end
 

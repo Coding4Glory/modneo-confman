@@ -34,7 +34,7 @@ M.setup = function(core)
     vim.api.nvim_create_user_command('ConfmanEnable', core.enable_command, { desc = 'enable plugin', bang = true })
     vim.api.nvim_create_user_command('ConfmanDisable', core.disable_command, { desc = 'disable plugin' })
     vim.api.nvim_create_user_command('Confman', function()
-        require'confman.ui.dialog'.show_plugins(core.get_all_items())
+        require'confman.ui.dialog'.show_plugins(core.get_configs())
     end, { desc = 'show Confman UI' })
 end
 
