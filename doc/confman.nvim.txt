@@ -3,14 +3,16 @@
 ==============================================================================
 Table of Contents                             *confman.nvim-table-of-contents*
 
-1. tiny.nvim config manager            |confman.nvim-tiny.nvim-config-manager|
-  - Setup and Configuration |confman.nvim-tiny.nvim-config-manager-setup-and-configuration-|
-  - Usage                        |confman.nvim-tiny.nvim-config-manager-usage|
-  - Help                         |confman.nvim-tiny.nvim-config-manager-help-|
-  - Known Issues         |confman.nvim-tiny.nvim-config-manager-known-issues-|
+1. mod4neo config manager                |confman.nvim-mod4neo-config-manager|
+  - Features                   |confman.nvim-mod4neo-config-manager-features-|
+  - Setup and Configuration |confman.nvim-mod4neo-config-manager-setup-and-configuration-|
+  - Usage                         |confman.nvim-mod4neo-config-manager-usage-|
+  - Help                           |confman.nvim-mod4neo-config-manager-help-|
+  - Known Issues           |confman.nvim-mod4neo-config-manager-known-issues-|
+  - Contribution           |confman.nvim-mod4neo-config-manager-contribution-|
 
 ==============================================================================
-1. tiny.nvim config manager            *confman.nvim-tiny.nvim-config-manager*
+1. mod4neo config manager                *confman.nvim-mod4neo-config-manager*
 
 aka tiny-confman.nvim
 
@@ -18,30 +20,43 @@ tiny-confman.nvim is a neovim plugin to enable and disable plugins for users
 maintaining a modular config approach.
 
 
-SETUP AND CONFIGURATION *confman.nvim-tiny.nvim-config-manager-setup-and-configuration-*
+FEATURES                       *confman.nvim-mod4neo-config-manager-features-*
+
+- InteractiveUI
+- Auto completion for plugin commands
+- unit tested
+
+
+SETUP AND CONFIGURATION *confman.nvim-mod4neo-config-manager-setup-and-configuration-*
+
+
+  This plugin performs changes on your filesystem! read the following section
+  carefully before continuing!
+Setup with lazy
 
 >lua
-    -- Lazy
     {
         'Coding4Glory/tiny-confman.nvim',
         -- Add your settings here, pass empty table for default settings (required)
         opts = {
-            ---The directory where the plugin categories are located, defaults to lua/plugins.
-            ---The path is expected to be relative.
+            ---The directory where the plugin categories are located, defaults to
+            ---lua/plugins. The path is expected to be relative.
             plugin_lib = vim.fs.joinpath('lua', 'plugins'),
             ---The directory where links to enabled plugins shall be stored
             ---if not existing the directory will be created in the plugin_dir.
-            ---The same directory has to be set in lazy, will be created within plugin_dir
+            ---The same directory has to be set in lazy, will be created within
+            ---plugin_dir.
             link_dir = 'enabled',
             ---The directory where the user configuration is stored, defaults to
             ---`~/.config/nvim.` The default value is retrieved via `stdpath` so
-            ---setting this value is usually not required and also not recommended doing
-            ---so will change the *state* folder for the plugin which in this case defaults
-            ---to the config directory by purpose.
+            ---setting this value is usually not required and also not recommended
+            ---doing so will change the *state* folder for the plugin which in
+            ---this case defaults to the config directory by purpose.
             config_root = vim.fn.stdpath('config'),
             ---the suffix part of a file glob pattern without leading asterisk
-            ---has to start with a dot (will not be added automatically) except your system
-            ---does not use dot's for file suffix separation (is there any where neovim runs on?).
+            ---has to start with a dot (will not be added automatically) except
+            ---your system does not use dot's for file suffix separation (is there
+            ---any where neovim runs on?).
             ---Might be set to .lua to ignore .vim files or vice versa.
             default_filter = '.[lv][iu][am]',
         },
@@ -49,7 +64,21 @@ SETUP AND CONFIGURATION *confman.nvim-tiny.nvim-config-manager-setup-and-configu
 <
 
 
-USAGE                            *confman.nvim-tiny.nvim-config-manager-usage*
+USAGE                             *confman.nvim-mod4neo-config-manager-usage-*
+
+Atthis point the plugin is meant to be used in conjunction with lazy. To make
+this work the link dir should be the only folder imported by lazy. Following
+example should give you the details if you’re familiar with lazy.
+
+
+  If not you should learn more about your configuration before continuing
+>lua
+    require("lazy").setup({
+        spec = {
+            { import = 'plugins/enabled' }
+        }
+    })
+<
 
 
 PLUGINCONFIGS  ~
@@ -102,14 +131,21 @@ Theplugin also supports the `checkhealth` command.
 <
 
 
-HELP                             *confman.nvim-tiny.nvim-config-manager-help-*
+HELP                               *confman.nvim-mod4neo-config-manager-help-*
 
 Run`:help tiny-confman` for more details.
 
 
-KNOWN ISSUES             *confman.nvim-tiny.nvim-config-manager-known-issues-*
+KNOWN ISSUES               *confman.nvim-mod4neo-config-manager-known-issues-*
 
-Theenabled directory is not created automatically
+- Theenabled directory is not created automatically.
+- Enabled configs are be shown twice
+- UI is not automatically refereshed when plugin is enabled via command instead of keybinding
+
+
+CONTRIBUTION               *confman.nvim-mod4neo-config-manager-contribution-*
+
+Seededicated file <CONTRIB.md>
 
 Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
 

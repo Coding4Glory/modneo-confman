@@ -3,7 +3,7 @@ TESTS_DIR = tests
 ENABLED_DIR = enabled
 CONTAINER_ENGINE = $(shell which podman || which docker || which false)
 
-.PHONY: test clean fixture
+.PHONY: fixture test clean docs
 
 
 MOCKS := ${TESTS_DIR}/fixture/cat_one/mod_one.lua ${TESTS_DIR}/fixture/cat_one/mod_two.lua ${TESTS_DIR}/fixture/cat_two/mod_three.lua ${TESTS_DIR}/fixture/cat_two/mod_four.lua
@@ -16,8 +16,10 @@ $(MOCKS) $(RW_MOCKS):
 
 WRITE_DIRS := ${TESTS_DIR}/fixture/${ENABLED_DIR} ${TESTS_DIR}/fixture_rw/${ENABLED_DIR}
 
-$(WRITE_DIR):
+$(WRITE_DIRS):
 	@mkdir -p $@
+
+fixture: $(MOCKS) $(RW_MOCKS), $(WRITE_DIRS)
 
 test: fixture
 	@nvim \
@@ -38,7 +40,7 @@ docs:
 		--rm \
 		-v .:/workspace \
 		panvimdoc:latest \
-		--project-name confman.nvim \
+		--project-name mod4neo-confman \
 		--input-file README.md \
 		--vim-version neovim-0.11 \
 		--toc true \
