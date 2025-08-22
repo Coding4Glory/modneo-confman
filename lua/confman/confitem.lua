@@ -39,8 +39,6 @@ F.new = function(path, core)
     local M = {}
 
     ---initializes the instance
-    ---@param path string the absolute path to the plugin
-    ---@param core ConfmanCore
     ---@return ConfmanConfItem
     M.init = function()
         M.abspath = path

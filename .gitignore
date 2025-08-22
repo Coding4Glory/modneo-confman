@@ -1,1 +1,3 @@
 .nvim/
+tests/fixture/
+tests/fixture_rw/

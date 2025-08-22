@@ -1,9 +1,24 @@
-PLENARY_INIT=tests/init.lua
-TESTS_DIR=tests
+PLENARY_INIT = tests/init.lua
+TESTS_DIR = tests
+ENABLED_DIR = enabled
 
 .PHONY: test clean
 
-test:
+
+MOCKS := ${TESTS_DIR}/fixture/cat_one/mod_one.lua ${TESTS_DIR}/fixture/cat_one/mod_two.lua ${TESTS_DIR}/fixture/cat_two/mod_three.lua ${TESTS_DIR}/fixture/cat_two/mod_four.lua
+
+RW_MOCKS := $(subst fixture,fixture_rw,${MOCKS})
+
+$(MOCKS) $(RW_MOCKS):
+	@mkdir -p $(@D)
+	@echo -e "vim.g.confman_test_$(notdir $(@:%.lua=%)) = 1\n" > $@
+
+WRITE_DIRS := ${TESTS_DIR}/fixture/enabled ${TESTS_DIR}/fixture_rw/enabled
+
+$(WRITE_DIR):
+	@mkdir -p $@
+
+test: $(MOCKS) ${RW_MOCKS} $(WRITE_DIRS)
 	@nvim \
 		--headless \
 		--noplugin \
@@ -12,3 +27,5 @@ test:
 
 clean:
 	@rm -rf /tmp/plenary.nvim
+	@rm -rf ${TESTS_DIR}/fixture
+	@rm -rf ${WRITE_DIRS}
