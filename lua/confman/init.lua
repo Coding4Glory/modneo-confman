@@ -17,12 +17,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
 ---@class ConfmanLoader
----@field setup function loads the module
 local M = {}
+
+local sign_name = require('confman.ui.render').sign.name
+
+local function remove_sign()
+    local found = vim.fn.sign_getdefined(sign_name)['name']
+    if found ~= nil then
+        vim.fn.sign_undefine(found)
+    end
+end
+
+---@param sign string
+local function add_sign(sign)
+    remove_sign()
+    vim.fn.sign_define(sign_name, { text = sign, texthl = 'Bold' })
+end
 
 ---initializes the plugin with default options
 M.init = function()
-    require('confman.config').init()
+    local options = require('confman.config').init()
+    add_sign(options.enabled_sign)
     local core = require('confman.core').init()
     require('confman.commands').setup(core)
 end
@@ -31,7 +46,8 @@ end
 ---@param opts ConfmanOptions? custom settings
 ---@return ConfmanCore
 M.setup = function(opts)
-    require('confman.config').setup(opts)
+    local options = require('confman.config').setup(opts)
+    add_sign(options.enabled_sign)
     local core = require('confman.core').init()
     if package.loaded['confman.commands'] == nil then
         require('confman.commands').setup(core)
@@ -42,8 +58,9 @@ M.setup = function(opts)
 end
 
 ---removes the plugin as far as possible
-M.remove = function ()
+M.remove = function()
     require('confman.commands').remove()
+    remove_sign()
     local to_remove = {
         'confman.ui.dialog',
         'confman.ui.render',
@@ -64,7 +81,7 @@ end
 ---@param opts ConfmanOptions? custom settings
 M.reload = function(opts)
     M.remove()
-   M.setup(opts)
+    M.setup(opts)
 end
 
 return M

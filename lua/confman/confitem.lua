@@ -29,7 +29,7 @@ end
 ---creates a new ConfmanConfItem
 ---@see ConfmanConfItem
 ---@return ConfmanConfItem
-F.new = function(path, core)
+F.new = function(path)
     ---@class ConfmanConfItem
     ---@field category string? the plugin category
     ---@field name string the name of the plugin config file
@@ -48,23 +48,23 @@ F.new = function(path, core)
         M.enabled = vim.fs.basename(vim.fs.dirname(M.abspath))
             == F.options.link_dir
 
-        ---enables this plugin
-        ---@param force boolean?
-        ---@see ConfmanCore.enable
-        M.enable = function(force)
-            core.enable_conf(M, force)
-            M.enabled = true
-        end
-
-        ---disables this plugin
-        ---@see ConfmanCore.disable
-        M.disable = function()
-            core.disable_conf(M)
-            M.enabled = false
-        end
-
         M.line_number = 0
         return M
+
+        -- ---enables this plugin
+        -- ---@param force boolean?
+        -- ---@see ConfmanCore.enable
+        -- M.enable = function(force)
+        --     core.enable_conf(M, force)
+        --     M.enabled = true
+        -- end
+        --
+        -- ---disables this plugin
+        -- ---@see ConfmanCore.disable
+        -- M.disable = function()
+        --     core.disable_conf(M)
+        --     M.enabled = false
+        -- end
     end
 
     return M.init()
@@ -73,7 +73,7 @@ end
 ---creates a table of ConfmanConfItem instances based on the passed table
 ---@param plugins table
 ---@return table a categorized table with ConfmanConfItem lists as values
-F.convert = function(plugins, core)
+F.convert = function(plugins)
     local result = {}
 
     if plugins == nil then
@@ -83,7 +83,7 @@ F.convert = function(plugins, core)
     -- simple table without categories
     if table.maxn(plugins) > 0 then
         for _, file in ipairs(plugins) do
-            local item = F.new(file, core)
+            local item = F.new(file)
             if result[item.category] == nil then
                 result[item.category] = {}
             end
@@ -99,7 +99,7 @@ F.convert = function(plugins, core)
         local converted = {}
         if pl ~= nil and type(pl) == 'table' then
             for _, file in ipairs(pl) do
-                local item = F.new(file, core)
+                local item = F.new(file)
                 table.insert(converted, item)
             end
         end

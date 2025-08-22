@@ -59,7 +59,7 @@ M.get_configs = function(category)
         M.get_file_pattern()
     )
     local plugins_files = vim.fn.glob(search_path, false, true, true)
-    return M.item_factory.convert(plugins_files, M)
+    return M.item_factory.convert(plugins_files)
 end
 
 ---gets a single item by category and name
@@ -75,9 +75,9 @@ M.get_item = function(category, name)
     local found = vim.fn.glob(search_path, false, true, false)
 
     if type(found) == 'string' then
-        return M.item_factory.new(found, M)
+        return M.item_factory.new(found)
     elseif type(found) == 'table' and #found == 1 then
-        return M.item_factory.new(found[1], M)
+        return M.item_factory.new(found[1])
     end
 end
 
@@ -111,6 +111,7 @@ M.enable_conf = function(item, force)
     end
 
     M.uv.fs_symlink(item.realpath, dst_file)
+    item.enabled = true
 end
 
 ---enables the given configuration file or a whole category
@@ -149,6 +150,7 @@ M.disable_conf = function(item)
     local link_file = M.get_link_name(item.category, item.name)
     if M.uv.fs_stat(link_file) ~= nil then
         M.uv.fs_unlink(link_file)
+        item.enabled = false
     end
 end
 

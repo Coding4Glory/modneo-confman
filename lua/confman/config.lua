@@ -44,6 +44,9 @@ local defaults = {
     ---vice versa.
     ---@type string 
     default_filter = '.[lv][iu][am]',
+    ---the sign used to highlight enabled plugins
+    ---@type string
+    enabled_sign = '*'
 }
 
 ---@type ConfmanOptions
@@ -58,9 +61,8 @@ M.setup = function(args)
 end
 
 ---reinitializes the configuration from defaults
----@param args ConfmanOptions?
-M.init = function(args)
-    M.options = vim.tbl_deep_extend('force', defaults, args or {})
+M.init = function()
+    M.options = vim.tbl_deep_extend('keep', defaults, {})
     return M.options
 end
 

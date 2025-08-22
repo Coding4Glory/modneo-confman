@@ -37,6 +37,48 @@ end
 ---@class ConfmanDialogs
 local M = {}
 
+---sets the plugins as new content of the given buffer
+---@param plugins table
+---@param buf integer
+---@private
+M.set_buffer_content = function(plugins, buf)
+    vim.api.nvim_set_option_value(
+        'modifiable',
+        true,
+        { scope = 'local', buf = buf }
+    )
+
+    M.render.to_buf(plugins, buf)
+
+    vim.api.nvim_set_option_value(
+        'modifiable',
+        false,
+        { scope = 'local', buf = buf }
+    )
+end
+
+---refereshes the status sign for the given item
+---@param item ConfmanConfItem
+---@param buf integer
+M.refresh_sign = function(item, buf)
+    if item.enabled then
+        vim.fn.sign_place(
+            item.line_number,
+            M.render.sign.group,
+            M.render.sign.name,
+            buf,
+            { lnum = item.line_number }
+        )
+        return
+    end
+    vim.fn.sign_unplace(M.render.sign.group, { buffer = buf, id = item.line_number })
+end
+
+---gets the name of the dialog buffer
+---@type string
+---@private
+M.dialog_name = 'ConfmanDialog'
+
 ---gets a table
 ---@type function
 ---@return FloatSize
@@ -44,22 +86,18 @@ M.get_window_dimensions = function(buf)
     return require('confman.ui.floatsize').new(buf)
 end
 
----@return integer|nil
-M.new_buffer = function()
+---@return integer?
+M.get_buffer = function()
     local bufid = vim.api.nvim_create_buf(false, true)
-    if bufid == 0 then
-        vim.notify('could not create buffer for UI', vim.log.levels.ERROR)
-        return nil
-    end
+    vim.api.nvim_buf_set_name(bufid, M.dialog_name)
+    if bufid ~= 0 then return bufid end
 
-    vim.api.nvim_set_option_value(
-        'modifiable',
-        true,
-        { scope = 'local', buf = bufid }
-    )
-    return bufid
+    bufid = vim.fn.bufnr(M.dialog_name)
+    if bufid > 0 then return bufid end
+
+    vim.notify('could not create or reuse buffer for Confman UI', vim.log.levels.ERROR)
+    return nil
 end
-
 
 M.close_dialog = function(win, buf)
     vim.api.nvim_win_close(win, true)
@@ -70,17 +108,15 @@ end
 ---@type function
 ---@param plugins table
 M.show_plugins = function(plugins)
-    local buf = M.new_buffer()
+    M.core = require('confman.core')
+    M.render = require('confman.ui.render').init()
+
+    local buf = M.get_buffer()
     if buf == nil then
         return
     end
 
-    require('confman.ui.render').init().to_buf(plugins, buf)
-    vim.api.nvim_set_option_value(
-        'modifiable',
-        false,
-        { scope = 'local', buf = buf }
-    )
+    M.set_buffer_content(plugins, buf)
 
     local float_size = M.get_window_dimensions(buf)
 
@@ -110,6 +146,11 @@ M.show_plugins = function(plugins)
         false,
         { scope = 'local', win = win }
     )
+    vim.api.nvim_set_option_value(
+        'signcolumn',
+        'yes:1',
+        { scope = 'local', win = win }
+    )
     vim.keymap.set(
         'n',
         'q',
@@ -120,36 +161,45 @@ M.show_plugins = function(plugins)
             buffer = buf,
         }
     )
-    vim.keymap.set('n', 'e', function()
-        local to_enable = get_selected(plugins, win)
-        if to_enable ~= nil then
-            to_enable.enable()
-        end
-    end, {
-        desc = 'b' .. buf .. ' Confman: enable',
-        noremap = true,
-        buffer = buf,
-    })
-    vim.keymap.set('n', 'E', function()
-        local to_enable = get_selected(plugins, win)
-        if to_enable ~= nil then
-            to_enable.enable(true)
-        end
-    end, {
-        desc = 'b' .. buf .. ' Confman: enable',
-        noremap = true,
-        buffer = buf,
-    })
-    vim.keymap.set('n', 'd', function()
-        local to_disable = get_selected(plugins)
-        if to_disable ~= nil then
-            to_disable.disable()
-        end
-    end, {
-        desc = 'b' .. buf .. ' Confman: disable',
-        noremap = true,
-        buffer = buf,
-    })
+    vim.keymap.set('n', 'e',
+        function()
+            local selected = get_selected(plugins, win)
+            if selected ~= nil then
+                M.core.enable_conf(selected)
+            end
+        end,
+        {
+            desc = 'b' .. buf .. ' Confman: enable',
+            noremap = true,
+            buffer = buf,
+        }
+    )
+    vim.keymap.set('n', 'E',
+        function()
+            local selected = get_selected(plugins, win)
+            if selected ~= nil then
+                M.core.enable_conf(selected, true)
+            end
+        end,
+        {
+            desc = 'b' .. buf .. ' Confman: enable',
+            noremap = true,
+            buffer = buf,
+        }
+    )
+    vim.keymap.set('n', 'd',
+        function()
+            local selected = get_selected(plugins)
+            if selected ~= nil then
+                M.core.disable_conf(selected)
+            end
+        end,
+        {
+            desc = 'b' .. buf .. ' Confman: disable',
+            noremap = true,
+            buffer = buf,
+        }
+    )
     vim.api.nvim_set_current_win(win)
 end
 
