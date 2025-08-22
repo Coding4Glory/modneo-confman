@@ -72,8 +72,9 @@ end
 
 ---creates a table of ConfmanConfItem instances based on the passed table
 ---@param plugins table
+---@param enabled table
 ---@return table a categorized table with ConfmanConfItem lists as values
-F.convert = function(plugins)
+F.convert = function(plugins, enabled)
     local result = {}
 
     if plugins == nil then
@@ -81,15 +82,18 @@ F.convert = function(plugins)
     end
 
     -- simple table without categories
-    if table.maxn(plugins) > 0 then
+    if #plugins > 0 then
         for _, file in ipairs(plugins) do
             local item = F.new(file)
+            local e = enabled[item.category .. '/' .. item.name]
+            if e ~= nil then
+                item = e
+            end
             if result[item.category] == nil then
                 result[item.category] = {}
             end
             table.insert(result[item.category], item)
         end
-        -- align_enabled(result, enabled)
         return result
     end
 
@@ -100,12 +104,15 @@ F.convert = function(plugins)
         if pl ~= nil and type(pl) == 'table' then
             for _, file in ipairs(pl) do
                 local item = F.new(file)
+                local e = enabled[item.category .. '/' .. item.name]
+                if  e ~= nil then
+                    converted = e
+                end
                 table.insert(converted, item)
             end
         end
         result[c] = converted
     end
-    -- align_enabled(result, enabled)
     return result
 end
 

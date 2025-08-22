@@ -77,13 +77,22 @@ end
 ---gets a list with all plugins
 ---@param category string? may be used to restrict to specific category
 M.get_configs = function(category)
+    local enabled = {}
+    if category ~= M.options.link_dir then
+        for _, l in pairs(M.get_configs(M.options.link_dir)) do
+            for _, e in ipairs(l) do
+                enabled[e.category .. '/' .. e.name] = e
+            end
+        end
+    end
+
     local search_path = vim.fs.joinpath(
         M.get_plugin_dir(),
         category or '*',
         M.get_file_pattern()
     )
     local plugins_files = vim.fn.glob(search_path, false, true, true)
-    return M.item_factory.convert(plugins_files)
+    return M.item_factory.convert(plugins_files, enabled)
 end
 
 ---gets a single item by category and name
@@ -91,17 +100,21 @@ end
 ---if the name is occupied multiple times (e. g. with .lua and .vim) pass
 ---the name with the suffix appended
 M.get_item = function(category, name)
+    local found = M.get_enabled_conf(category, name)
+    if found ~= nil then return found end
+
     local search_path = vim.fs.joinpath(
         M.get_plugin_dir(),
         category,
         M.get_file_pattern(name)
     )
-    local found = vim.fn.glob(search_path, false, true, false)
+    found = vim.fn.glob(search_path, false, true, false)
 
+    local item
     if type(found) == 'string' then
-        return M.item_factory.new(found)
+        item = M.item_factory.new(found)
     elseif type(found) == 'table' and #found == 1 then
-        return M.item_factory.new(found[1])
+        item = M.item_factory.new(found[1])
     end
 end
 
@@ -223,10 +236,17 @@ M.disable_command = function(opts)
     end
 end
 
+---Gets the enable configuration with the given category and name
+---if found, otherwise nil.
+---@return ConfmanConfItem?
+M.get_enabled_conf = function(cat, name)
+    return M.get_item(M.options.link_dir, cat .. '-' .. name)
+end
+
 ---@type function
 ---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
-    local found = M.get_item(M.options.link_dir, cat .. '-' .. name)
+    local found = M.get_enabled_conf(cat, name)
     if found ~= nil then
         return true
     end

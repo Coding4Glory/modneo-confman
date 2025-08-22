@@ -108,7 +108,6 @@ Run `:help tiny-confman` for more details.
 ## Known Issues ⚠
 
 - The enabled directory is not created automatically.
-- Enabled configs are be shown twice
 - UI is not automatically refereshed when plugin is enabled via command instead of keybinding
 
 ## Contribution 🤜🤛

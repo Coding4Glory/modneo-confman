@@ -23,7 +23,7 @@ if command ~= nil then
             '.:/workspace',
             'panvimdoc:latest',
             '--project-name',
-            'mod4neo-confman',
+            'modneo-confman',
             '--input-file',
             'README.md',
             '--vim-version',

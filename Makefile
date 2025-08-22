@@ -40,7 +40,7 @@ docs:
 		--rm \
 		-v .:/workspace \
 		panvimdoc:latest \
-		--project-name mod4neo-confman \
+		--project-name modneo-confman \
 		--input-file README.md \
 		--vim-version neovim-0.11 \
 		--toc true \
