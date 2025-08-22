@@ -35,6 +35,16 @@ local function format_item(item)
     return fmt_ln(item.name, item.enabled)
 end
 
+---@return string[]
+local function sorted_categories(list)
+    local categories = {}
+    for c, _ in pairs(list) do
+        table.insert(categories, c)
+    end
+    table.sort(categories)
+    return categories
+end
+
 ---@class ConfmanUiEnabledSign
 M.sign = {
     ---the sign group used by the plugin
@@ -54,10 +64,11 @@ end
 ---prints the given plugins
 ---@param plugins table a table of th form { 'cat' = { 'mod', ... }, ... }
 ---@param settings ConfmanOptions
-M.print_plugin_files = function(plugins, settings)
-    for c, pl in pairs(plugins) do
+M.print_plugin_files = function(plugins)
+    local categories = sorted_categories(plugins)
+    for i, c in ipairs(categories) do
         vim.print(c)
-        for _, p in ipairs(pl) do
+        for _, p in ipairs(plugins[c]) do
             if type(p) == 'string' then
                 vim.print(format_fullpath(p))
             else
@@ -69,21 +80,22 @@ M.print_plugin_files = function(plugins, settings)
 end
 
 ---renders the items to the buffer with the given id and sets the line numbers
----@param items table a list of ConfmanConfItem instances
+---@param plugins table a list of ConfmanConfItem instances
 ---@param buf integer buffer to write to
-M.to_buf = function(items, buf)
+M.to_buf = function(plugins, buf)
     if vim.api.nvim_buf_line_count(buf) > 1 then
         vim.api.nvim_buf_set_lines(buf, 1, -1, false, {''})
         vim.fn.sign_unplace(M.sign.group, { buf = buf })
     end
 
-    vim.api.nvim_buf_set_lines(buf, -2, -1, false, { ' Usage: [e]nable | [d]isable | [q]uit', '' })
+    vim.api.nvim_buf_set_lines(buf, -2, -1, false, { 'Usage: [e]nable | [d]isable | [q]uit', '' })
     local line_counter = vim.api.nvim_buf_line_count(buf)
+    local categories = sorted_categories(plugins)
 
-    for c, pl in pairs(items) do
+    for _, c in ipairs(categories) do
         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
         line_counter = line_counter + 1
-        for _, p in ipairs(pl) do
+        for _, p in ipairs(plugins[c]) do
             vim.api.nvim_buf_set_lines(buf, -2, -1, false, { '- ' .. p.name, '' })
             p.line_number = line_counter
             if p.enabled then
@@ -94,17 +106,18 @@ M.to_buf = function(items, buf)
     end
 end
 
-M.refresh_enabled = function(items, buf)
-    for c, pl in pairs(items) do
-        vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
-        for _, p in ipairs(pl) do
-            if p.enabled then
-                vim.fn.sign_place(p.line_number, M.sign.group, M.sign.name, buf, { lnum = p.line_number})
-            else
-                vim.fn.sign_unplace(M.sign.group, { buf = buf, id = p.line_number })
-            end
-        end
-    end
-end
-
+-- not required, yet
+-- M.refresh_enabled = function(items, buf)
+--     for c, pl in pairs(items) do
+--         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
+--         for _, p in ipairs(pl) do
+--             if p.enabled then
+--                 vim.fn.sign_place(p.line_number, M.sign.group, M.sign.name, buf, { lnum = p.line_number})
+--             else
+--                 vim.fn.sign_unplace(M.sign.group, { buf = buf, id = p.line_number })
+--             end
+--         end
+--     end
+-- end
+--
 return M
