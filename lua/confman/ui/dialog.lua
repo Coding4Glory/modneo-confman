@@ -165,6 +165,7 @@ M.show_plugins = function(plugins)
         function()
             local selected = get_selected(plugins, win)
             if selected ~= nil then
+                if selected.enabled then return end
                 M.core.enable_conf(selected)
                 M.refresh_sign(selected, buf)
             end
@@ -193,6 +194,7 @@ M.show_plugins = function(plugins)
         function()
             local selected = get_selected(plugins)
             if selected ~= nil then
+                if not selected.enabled then return end
                 M.core.disable_conf(selected)
                 M.refresh_sign(selected, buf)
             end
