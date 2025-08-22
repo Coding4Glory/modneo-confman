@@ -55,7 +55,7 @@ end
 M.get_configs = function(category)
     local search_path = vim.fs.joinpath(
         M.get_plugin_dir(),
-        category or '**',
+        category or '*',
         M.get_file_pattern()
     )
     local plugins_files = vim.fn.glob(search_path, false, true, true)
