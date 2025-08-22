@@ -65,6 +65,7 @@ M.remove = function()
         'confman.ui.dialog',
         'confman.ui.render',
         'confman.ui.floatsize',
+        'confman.health',
         'confman.confitem',
         'confman.core',
         -- 'confman.commands', -- removes itself

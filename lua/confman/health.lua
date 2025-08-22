@@ -39,7 +39,7 @@ return {
                     end
                 end
             end
-            vim.health.ok('plugin directory exists')
+            vim.health.ok(string.format('plugin directory exists, %i categories with %i plugins', cat_count, plug_count))
         else
             vim.health.error(string.format('plugin directory [%s] does not exist', plugin_dir))
         end
