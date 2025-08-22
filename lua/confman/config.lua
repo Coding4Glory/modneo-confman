@@ -21,19 +21,22 @@ local M = {}
 
 ---@class ConfmanOptions
 local defaults = {
-    ---the directory where the plugin categories
-    ---are located, defaults to lua/plugins
+    ---The directory where the plugin categories are located, defaults to lua/plugins.
+    ---The path is expected to be relative.
     ---@type string 
-    plugin_dir = vim.fs.joinpath('lua', 'plugins'),
-    ---the directory where links to enabled plugins shall be stored
+    plugin_lib = vim.fs.joinpath('lua', 'plugins'),
+    ---The directory where links to enabled plugins shall be stored
     ---if not existing the directory will be created in the plugin_dir.
     ---@type string
     ---The same directory has to be set in lazy, will be created within plugin_dir
     link_dir = 'enabled',
-    ---the directory where the user configuration is stored, defaults to
-    ---`~/.config/nvim.` the default value is retrieved via `stdpath`
+    ---The directory where the user configuration is stored, defaults to
+    ---`~/.config/nvim.` The default value is retrieved via `stdpath` so
+    ---setting this value is usually not required and also not recommended doing
+    ---so will change the *state* folder for the plugin which in this case defaults
+    ---to the config directory by purpose.
     ---@type string
-    config_dir = vim.fn.stdpath('config'),
+    config_root = vim.fn.stdpath('config'),
     ---the suffix part of a file glob pattern without leading asterisk
     ---has to start with a dot (will not be added automatically) except your system
     ---does not use dot's for file suffix separation (is there any where neovim runs on?).

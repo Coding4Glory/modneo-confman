@@ -20,10 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ---@class ConfmanCore
 ---@field options ConfmanOptions
+---@field item_factory ConfmanConfItemFactory
+---@field uv uv
 local M = {}
 
 ---@type ConfmanOptions
----@private
 M.options = {}
 
 ---gets the glob pattern for the given filename using the default_filter value
@@ -39,7 +40,7 @@ end
 
 ---@return string
 M.get_plugin_dir = function()
-    return vim.fs.joinpath(M.options.config_dir, M.options.plugin_dir)
+    return vim.fs.joinpath(M.options.config_root, M.options.plugin_lib)
 end
 
 ---@param category string the plugin category
@@ -62,7 +63,7 @@ M.get_configs = function(category)
 end
 
 ---gets a single item by category and name
----@return ConfmanConfItem
+---@return ConfmanConfItem?
 ---if the name is occupied multiple times (e. g. with .lua and .vim) pass
 ---the name with the suffix appended
 M.get_item = function(category, name)
@@ -71,11 +72,12 @@ M.get_item = function(category, name)
         category,
         M.get_file_pattern(name)
     )
-
     local found = vim.fn.glob(search_path, false, true, false)
 
-    if table.maxn(found) == 1 then
-        M.item_factory.new(found[1], M)
+    if type(found) == 'string' then
+        return M.item_factory.new(found, M)
+    elseif type(found) == 'table' and #found == 1 then
+        return M.item_factory.new(found[1], M)
     end
 end
 
@@ -95,35 +97,40 @@ end
 ---@type function
 ---@param item ConfmanConfItem
 M.enable_conf = function(item, force)
-    local uv = (vim.uv or vim.loop)
     local dst_file = M.get_link_name(item.category, item.name)
-    if uv.fs_stat(dst_file) then
+    if M.uv.fs_stat(dst_file) then
         if not (force or false) then
-            if uv.fs_realpath(dst_file) ~= item.realpath then
+            if M.uv.fs_realpath(dst_file) ~= item.realpath then
                 vim.print('!! Link has different target, add bang ! to override')
                 return
             end
             vim.print('!! Plugin already enabled, add bang ! to recreate link')
             return
         end
-        uv.fs_unlink(dst_file)
+        M.uv.fs_unlink(dst_file)
     end
 
-    uv.fs_symlink(item.realpath, dst_file)
+    M.uv.fs_symlink(item.realpath, dst_file)
 end
 
----enables the given configuration file
+---enables the given configuration file or a whole category
 ---@param category string module category
----@param name string the name of the config file within the category
+---@param name string? the name of the config file within the category, pass nil to enable whole category
 ---@param force boolean? force re-enabling / overriding
 M.enable = function(category, name, force)
-    local item = M.get_item(category, name)
-    if item == nil then
-        print(string.format('Config file matching %s/%s not found', category, name))
+    if name ~= nil and name ~= '' then
+        local item = M.get_item(category, name)
+        if item == nil then
+            error(string.format('Config file matching %s/%s not found', category, name))
+        end
+        M.enable_conf(item, force)
         return
     end
 
-    M.enable_conf(item, force)
+    local all_from_cat = M.get_configs(category)
+    for _, x in ipairs(all_from_cat[category]) do
+        M.enable_conf(x)
+    end
 end
 
 ---enables the given plugin
@@ -139,18 +146,34 @@ end
 ---@type function
 ---@param item ConfmanConfItem
 M.disable_conf = function(item)
-    M.disable(item.category, item.name)
+    local link_file = M.get_link_name(item.category, item.name)
+    if M.uv.fs_stat(link_file) ~= nil then
+        M.uv.fs_unlink(link_file)
+    end
 end
 
 ---disables the plugin identified by category and name
 ---@param cat string the plugin category
 ---@param name string the name of the config file
-M.disable = function(cat, name)
-    local link_file = M.get_link_name(cat, name)
-    local uv = (vim.uv or vim.loop)
-    if uv.fs_stat(link_file) ~= nil then
-        uv.fs_unlink(link_file)
+---@param force boolean? disables the module, even if not expected
+M.disable = function(cat, name, force)
+    local found = M.get_item(M.options.link_dir, cat .. '-' .. name)
+    if found == nil then
+        error('link to disable not found')
     end
+
+    local expected = M.get_item(cat, name)
+    if expected ~= nil and expected.realpath == found.realpath then
+        M.disable_conf(expected)
+        return
+    end
+
+    -- fallback for orphaned
+    if force or false then
+       M.uv.fs_unlink(found.abspath)
+       return
+    end
+    warn('link found, but not matching item. Use bang ! to remove anyway')
 end
 
 ---disables the given plugin
@@ -164,12 +187,13 @@ M.disable_command = function(opts)
 end
 
 ---@type function
----@return integer 1 if the link exists otherwise 0
+---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
-    if (vim.uv or vim.loop).fs_stat(M.get_link_name(cat, name)) ~= nil then
-        return 1
+    local found = M.get_item(M.options.link_dir, cat .. '-' .. name)
+    if found ~= nil then
+        return true
     end
-    return 0
+    return false
 end
 
 ---call on require to apply settings
@@ -178,6 +202,7 @@ end
 M.init = function()
     M.options = require('confman.config').options
     M.item_factory = require('confman.confitem').setup(M.options)
+    M.uv = (vim.uv or vim.loop)
     return M
 end
 

@@ -29,12 +29,13 @@ end
 
 ---performs plugin setup with given options
 ---@param opts ConfmanOptions? custom settings
+---@return ConfmanCore
 M.setup = function(opts)
     require('confman.config').setup(opts)
     local core = require('confman.core').init()
     if package.loaded['confman.commands'] == nil then
         require('confman.commands').setup(core)
-        return
+        return core
     end
     require('confman.commands').remove().setup(core)
     return core
