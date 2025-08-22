@@ -25,14 +25,37 @@ local M = {}
 ---adds the plugin commands
 ---@param core ConfmanCore
 M.setup = function(core)
+    local function complete_helper(argLead, cmdLine, cursorPos)
+        local proto_cat = argLead:match('(.+)/.*')
+        if proto_cat == nil then
+           return core.get_categories()
+        end
+        if vim.startswith(cmdLine, 'ConfmanEnable') then
+            return core.get_category(proto_cat)
+        end
+        -- ConfmanDisabled
+        local enabled = {}
+        for _, p in core.list_enabled()[core.options.link_dir] do
+            table.insert(enabled, string.format("%s/%p", p.category,  p.name))
+        end
+        return enabled
+    end
+
     vim.api.nvim_create_user_command('ConfmanList', function()
-        render.print_plugin_files(core.list_available(), core.options)
+        render.print_plugin_files(core.list_available())
     end, { desc = 'list all plugins' })
     vim.api.nvim_create_user_command('ConfmanInfo', function()
-        render.print_plugin_files(core.list_enabled(), core.options)
+        local enabled = core.list_enabled()
+        if #enabled == 0 then
+            vim.notify('no enabled plugins found', vim.log.levels.INFO)
+            return
+        end
+        render.print_plugin_files(enabled)
     end, { desc = 'list enabled plugins' })
-    vim.api.nvim_create_user_command('ConfmanEnable', core.enable_command, { desc = 'enable plugin', bang = true, nargs = 1 })
-    vim.api.nvim_create_user_command('ConfmanDisable', core.disable_command, { desc = 'disable plugin', bang = true, nargs = 1 })
+    vim.api.nvim_create_user_command('ConfmanEnable', core.enable_command,
+        { desc = 'enable plugin', bang = true, nargs = 1, complete = complete_helper })
+    vim.api.nvim_create_user_command('ConfmanDisable', core.disable_command,
+        { desc = 'disable plugin', bang = true, nargs = 1, complete = complete_helper })
     vim.api.nvim_create_user_command('Confman', function()
         require'confman.ui.dialog'.show_plugins(core.get_configs())
     end, { desc = 'show Confman UI' })

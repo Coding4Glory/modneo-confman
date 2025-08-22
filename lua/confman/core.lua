@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-
-
 ---@class ConfmanCore
 ---@field options ConfmanOptions
 ---@field item_factory ConfmanConfItemFactory
@@ -31,7 +29,7 @@ M.options = {}
 ---@param name string? the filename, ommitting or nil will result in an asterisk `*`.
 M.get_file_pattern = function(name)
     name = name or '*'
-    if name:match('.+%' .. M.options.default_filter ..'$') == nil then
+    if name:match('.+%' .. M.options.default_filter .. '$') == nil then
         return name .. M.options.default_filter
     end
     --- has already a matching suffix
@@ -46,9 +44,35 @@ end
 ---@param category string the plugin category
 ---@param filename string must be the exact basename (with suffix)
 M.get_link_name = function(category, filename)
-    return vim.fs.joinpath(M.get_plugin_dir(), M.options.link_dir, category .. '-' .. filename)
+    return vim.fs.joinpath(
+        M.get_plugin_dir(),
+        M.options.link_dir,
+        category .. '-' .. filename
+    )
 end
 
+---gets a list with all plugin categories
+---@return table
+M.get_categories = function()
+    local r = {}
+    for name, type in vim.fs.dir(M.get_plugin_dir()) do
+        if type == 'directory' then
+            table.insert(r, name)
+        end
+    end
+    return r
+end
+
+M.get_category = function(cat)
+    local r = {}
+    for name, type in vim.fs.dir(vim.fs.joinpath(M.get_plugin_dir(), cat)) do
+        if type == 'file' then
+            table.insert(r, cat .. '/' .. name)
+        end
+    end
+    return r
+
+end
 
 ---gets a list with all plugins
 ---@param category string? may be used to restrict to specific category
@@ -101,10 +125,14 @@ M.enable_conf = function(item, force)
     if M.uv.fs_stat(dst_file) then
         if not (force or false) then
             if M.uv.fs_realpath(dst_file) ~= item.realpath then
-                vim.print('!! Link has different target, add bang ! to override')
+                vim.print(
+                    '!! Link has different target, add bang ! to override'
+                )
                 return
             end
-            vim.print('!! Plugin already enabled, add bang ! to recreate link')
+            vim.print(
+                '!! Plugin already enabled, add bang ! to recreate link'
+            )
             return
         end
         M.uv.fs_unlink(dst_file)
@@ -122,7 +150,14 @@ M.enable = function(category, name, force)
     if name ~= nil and name ~= '' then
         local item = M.get_item(category, name)
         if item == nil then
-            error(string.format('Config file matching %s/%s not found in %s', category, name, M.get_plugin_dir()))
+            error(
+                string.format(
+                    'Config file matching %s/%s not found in %s',
+                    category,
+                    name,
+                    M.get_plugin_dir()
+                )
+            )
         end
         M.enable_conf(item, force)
         return
@@ -172,8 +207,8 @@ M.disable = function(cat, name, force)
 
     -- fallback for orphaned
     if force or false then
-       M.uv.fs_unlink(found.abspath)
-       return
+        M.uv.fs_unlink(found.abspath)
+        return
     end
     warn('link found, but not matching item. Use bang ! to remove anyway')
 end
