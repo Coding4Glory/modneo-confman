@@ -121,7 +121,7 @@ M.enable = function(category, name, force)
     if name ~= nil and name ~= '' then
         local item = M.get_item(category, name)
         if item == nil then
-            error(string.format('Config file matching %s/%s not found', category, name))
+            error(string.format('Config file matching %s/%s not found in %s', category, name, M.get_plugin_dir()))
         end
         M.enable_conf(item, force)
         return
@@ -182,7 +182,7 @@ end
 ---@param opts vim.api.keyset.create_user_command.command_args
 M.disable_command = function(opts)
     for cat, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
-        M.disable(cat, mod)
+        M.disable(cat, mod, opts.bang)
     end
 end
 
