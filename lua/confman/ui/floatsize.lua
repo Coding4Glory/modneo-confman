@@ -20,13 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---gets the number of columns in the longest line
 ---@param buf integer buffer number
 ---@return integer the column count taken from the longest line
-local function longest_line(buf)
+local function window_width(buf)
     local longest = 0
-    for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, 1, -1, true)) do
+    for _, l in ipairs(vim.api.nvim_buf_get_lines(buf, 0, -1, true)) do
         local current = string.len(l)
         longest = (current > longest and current or longest)
     end
-    return longest
+    return longest + 2 -- sign column and trailing column
 end
 
 local function side_length(min, max, content)
@@ -88,7 +88,7 @@ M.new = function(buf)
     M.ui_width = vim_ui.width
     M.ui_height = vim_ui.height
     M.content_height = line_count
-    M.content_width = longest_line(buf)
+    M.content_width = window_width(buf)
     return M
 end
 

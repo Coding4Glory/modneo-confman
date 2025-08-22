@@ -77,14 +77,14 @@ M.to_buf = function(items, buf)
         vim.fn.sign_unplace(M.sign.group, { buf = buf })
     end
 
-    vim.api.nvim_buf_set_lines(buf, -2, -1, false, { ' Usage: [e]nable | [d]isable | [q]uit ', '' })
+    vim.api.nvim_buf_set_lines(buf, -2, -1, false, { ' Usage: [e]nable | [d]isable | [q]uit', '' })
     local line_counter = vim.api.nvim_buf_line_count(buf)
 
     for c, pl in pairs(items) do
         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
         line_counter = line_counter + 1
         for _, p in ipairs(pl) do
-            vim.api.nvim_buf_set_lines(buf, -2, -1, false, { format_item(p), '' })
+            vim.api.nvim_buf_set_lines(buf, -2, -1, false, { '- ' .. p.name, '' })
             p.line_number = line_counter
             if p.enabled then
                 vim.fn.sign_place(line_counter, M.sign.group, M.sign.name, buf, { lnum = line_counter })
