@@ -46,7 +46,7 @@ return {
 
         local enabled_dir = vim.fs.joinpath(core.get_plugin_dir(), options.link_dir)
         if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then
-            vim.health.ok('enabled-plugin directory exists ' .. table.maxn(vim.fs.glob(vim.fs.joinpath(enabled_dir, '*'))) .. ' files found')
+            vim.health.ok('enabled-plugin directory exists ' .. table.maxn(vim.fn.glob(vim.fs.joinpath(enabled_dir, '*'), false, true, false)) .. ' files found')
         else
             vim.health.error(string.format('enabled-plugin directory [%s] does not exist', enabled_dir))
         end

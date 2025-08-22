@@ -37,9 +37,11 @@ local defaults = {
     ---to the config directory by purpose.
     ---@type string
     config_root = vim.fn.stdpath('config'),
-    ---the suffix part of a file glob pattern without leading asterisk
-    ---has to start with a dot (will not be added automatically) except your system
-    ---does not use dot's for file suffix separation (is there any where neovim runs on?).
+    ---The suffix part of a file glob pattern without leading asterisk. It
+    ---has to start with a dot (will not be added automatically) except your
+    ---system does not use dot's for file suffix separation (is there any
+    ---where neovim runs on?). Might be set to .lua to ignore .vim files original
+    ---vice versa.
     ---@type string 
     default_filter = '.[lv][iu][am]',
 }

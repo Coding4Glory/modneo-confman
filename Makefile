@@ -1,24 +1,25 @@
 PLENARY_INIT = tests/init.lua
 TESTS_DIR = tests
 ENABLED_DIR = enabled
+CONTAINER_ENGINE = $(shell which podman || which docker || which false)
 
-.PHONY: test clean
+.PHONY: test clean fixture
 
 
 MOCKS := ${TESTS_DIR}/fixture/cat_one/mod_one.lua ${TESTS_DIR}/fixture/cat_one/mod_two.lua ${TESTS_DIR}/fixture/cat_two/mod_three.lua ${TESTS_DIR}/fixture/cat_two/mod_four.lua
 
-RW_MOCKS := $(subst fixture,fixture_rw,${MOCKS})
+RW_MOCKS := $(subst fixture,fixture_rw,$(MOCKS))
 
 $(MOCKS) $(RW_MOCKS):
 	@mkdir -p $(@D)
 	@echo -e "vim.g.confman_test_$(notdir $(@:%.lua=%)) = 1\n" > $@
 
-WRITE_DIRS := ${TESTS_DIR}/fixture/enabled ${TESTS_DIR}/fixture_rw/enabled
+WRITE_DIRS := ${TESTS_DIR}/fixture/${ENABLED_DIR} ${TESTS_DIR}/fixture_rw/${ENABLED_DIR}
 
 $(WRITE_DIR):
 	@mkdir -p $@
 
-test: $(MOCKS) ${RW_MOCKS} $(WRITE_DIRS)
+test: fixture
 	@nvim \
 		--headless \
 		--noplugin \
@@ -29,3 +30,18 @@ clean:
 	@rm -rf /tmp/plenary.nvim
 	@rm -rf ${TESTS_DIR}/fixture
 	@rm -rf ${WRITE_DIRS}
+
+docs:
+	@echo "container engine: ${CONTAINER_ENGINE}"
+	@${CONTAINER_ENGINE} \
+		run \
+		--rm \
+		-v .:/workspace \
+		panvimdoc:latest \
+		--project-name confman.nvim \
+		--input-file README.md \
+		--vim-version neovim-0.11 \
+		--toc true \
+		--demojify true \
+		--dedup-subheadings true
+
