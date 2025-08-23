@@ -37,7 +37,7 @@ Setup with lazy
 
 >lua
     {
-        'Coding4Glory/tiny-confman.nvim',
+        'Coding4Glory/modneo-confman.nvim',
         -- Add your settings here, pass empty table for default settings (required)
         opts = {
             ---The directory where the plugin categories are located, defaults to
