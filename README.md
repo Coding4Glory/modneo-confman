@@ -1,8 +1,8 @@
-# mod4neo config manager
+# modneo config manager
 
-aka mod4neo-confman
+aka modneo-confman
 
-mod4neo-confman is a neovim plugin to enable and disable plugins for users maintaining a modular config approach.
+modneo-confman is a neovim plugin to enable and disable plugins for users maintaining a modular config approach.
 
 ## Features ✨
 

@@ -3,31 +3,31 @@
 ==============================================================================
 Table of Contents                           *modneo-confman-table-of-contents*
 
-1. mod4neo config manager              |modneo-confman-mod4neo-config-manager|
-  - Features                 |modneo-confman-mod4neo-config-manager-features-|
-  - Setup and Configuration |modneo-confman-mod4neo-config-manager-setup-and-configuration-|
-  - Usage                       |modneo-confman-mod4neo-config-manager-usage-|
-  - Help                         |modneo-confman-mod4neo-config-manager-help-|
-  - Known Issues         |modneo-confman-mod4neo-config-manager-known-issues-|
-  - Contribution         |modneo-confman-mod4neo-config-manager-contribution-|
+1. modneo config manager              |modneo-confman-mod4neo-config-manager|
+  - Features                 |modneo-confman-modneo-config-manager-features-|
+  - Setup and Configuration |modneo-confman-modneo-config-manager-setup-and-configuration-|
+  - Usage                       |modneo-confman-modneo-config-manager-usage-|
+  - Help                         |modneo-confman-modneo-config-manager-help-|
+  - Known Issues         |modneo-confman-modneo-config-manager-known-issues-|
+  - Contribution         |modneo-confman-modneo-config-manager-contribution-|
 
 ==============================================================================
-1. mod4neo config manager              *modneo-confman-mod4neo-config-manager*
+1. modneo config manager              *modneo-confman-mod4neo-config-manager*
 
-aka mod4neo-confman
+aka modneo-confman
 
-mod4neo-confman is a neovim plugin to enable and disable plugins for users
+modneo-confman is a neovim plugin to enable and disable plugins for users
 maintaining a modular config approach.
 
 
-FEATURES                     *modneo-confman-mod4neo-config-manager-features-*
+FEATURES                     *modneo-confman-modneo-config-manager-features-*
 
 - InteractiveUI
 - Auto completion for plugin commands
 - unit tested
 
 
-SETUP AND CONFIGURATION *modneo-confman-mod4neo-config-manager-setup-and-configuration-*
+SETUP AND CONFIGURATION *modneo-confman-modneo-config-manager-setup-and-configuration-*
 
 
   This plugin performs changes on your filesystem! read the following section
@@ -65,7 +65,7 @@ Setup with lazy
 <
 
 
-USAGE                           *modneo-confman-mod4neo-config-manager-usage-*
+USAGE                           *modneo-confman-modneo-config-manager-usage-*
 
 At this point the plugin is meant to be used in conjunction with lazy. To make
 this work the link dir should be the only folder imported by lazy. Following
@@ -132,18 +132,18 @@ Theplugin also supports the `checkhealth` command.
 <
 
 
-HELP                             *modneo-confman-mod4neo-config-manager-help-*
+HELP                             *modneo-confman-modneo-config-manager-help-*
 
 Run`:help tiny-confman` for more details.
 
 
-KNOWN ISSUES             *modneo-confman-mod4neo-config-manager-known-issues-*
+KNOWN ISSUES             *modneo-confman-modneo-config-manager-known-issues-*
 
 - The enabled directory is not created automatically.
 - UI is not automatically refereshed when plugin is enabled via command instead of keybinding
 
 
-CONTRIBUTION             *modneo-confman-mod4neo-config-manager-contribution-*
+CONTRIBUTION             *modneo-confman-modneo-config-manager-contribution-*
 
 See dedicated file <CONTRIB.md>
 
