@@ -18,13 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 return {
     check = function()
-        local options = require'confman.config'.options
+        local options = require'modneo-confman.config'.options
         if options == nil then
-            vim.health.error('confman is not configured properly')
+            vim.health.error('modneo-confman is not configured properly')
             return
         end
 
-        local core = require'confman.core'
+        local core = require'modneo-confman.core'
 
         local plugin_dir = core.get_plugin_dir()
         if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then

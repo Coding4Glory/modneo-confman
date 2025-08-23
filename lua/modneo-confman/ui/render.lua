@@ -45,7 +45,7 @@ local function sorted_categories(list)
     return categories
 end
 
----@class ConfmanUiEnabledSign
+---@class Modneo.ConfmanUiEnabledSign
 M.sign = {
     ---the sign group used by the plugin
     ---@type string
@@ -57,7 +57,7 @@ M.sign = {
 
 ---initialzes the renderer with the configuration
 M.init = function()
-    M.options = require'confman.config'.options
+    M.options = require'modneo-confman.config'.options
     return M
 end
 

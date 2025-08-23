@@ -1,4 +1,4 @@
-local plugin = require('confman')
+local plugin = require('modneo-confman')
 local uv = (vim.uv or vim.loop)
 local readonly_settings = {
     config_root = uv.cwd(),

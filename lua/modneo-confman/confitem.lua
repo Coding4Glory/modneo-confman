@@ -16,21 +16,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class ConfmanConfItemFactory
----@field options ConfmanOptions
+---@class Modneo.ConfmanConfItemFactory
+---@field options Modneo.ConfmanOptions
 local F = {}
 
----@param opts ConfmanOptions
+---@param opts Modneo.ConfmanOptions
 F.setup = function(opts)
-    F.options = opts or require('confman.config').options
+    F.options = opts or require('modneo-confman.config').options
     return F
 end
 
 ---creates a new ConfmanConfItem
 ---@see ConfmanConfItem
----@return ConfmanConfItem
+---@return Modneo.ConfmanConfItem
 F.new = function(path)
-    ---@class ConfmanConfItem
+    ---@class Modneo.ConfmanConfItem
     ---@field category string? the plugin category
     ---@field name string the name of the plugin config file
     ---@field line_number integer contains the line number after set_line was called
@@ -39,7 +39,7 @@ F.new = function(path)
     local M = {}
 
     ---initializes the instance
-    ---@return ConfmanConfItem
+    ---@return Modneo.ConfmanConfItem
     M.init = function()
         M.abspath = path
         M.realpath = (vim.uv or vim.loop).fs_realpath(path)

@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local render = require('confman.ui.render').init()
+local render = require('modneo-confman.ui.render').init()
 
----@class ConfmanCommands
+---@class Modneo.ConfmanCommands
 local M = {}
 
 ---@type function
 ---adds the plugin commands
----@param core ConfmanCore
+---@param core Modneo.ConfmanCore
 M.setup = function(core)
     local function complete_helper(argLead, cmdLine, cursorPos)
         local proto_cat = argLead:match('(.+)/.*')
@@ -57,7 +57,7 @@ M.setup = function(core)
     vim.api.nvim_create_user_command('ConfmanDisable', core.disable_command,
         { desc = 'disable plugin', bang = true, nargs = 1, complete = complete_helper })
     vim.api.nvim_create_user_command('Confman', function()
-        require'confman.ui.dialog'.show_plugins(core.get_configs())
+        require'modneo-confman.ui.dialog'.show_plugins(core.get_configs())
     end, { desc = 'show Confman UI' })
 end
 
@@ -68,7 +68,7 @@ M.remove = function()
            vim.api.nvim_del_user_command(c)
        end
     end
-    package.loaded['confman.commands'] = nil
+    package.loaded['modneo-confman.commands'] = nil
     return M
 end
 

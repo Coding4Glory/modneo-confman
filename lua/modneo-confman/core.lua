@@ -16,13 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class ConfmanCore
----@field options ConfmanOptions
----@field item_factory ConfmanConfItemFactory
+---@class Modneo.ConfmanCore
+---@field options Modneo.ConfmanOptions
+---@field item_factory Modneo.ConfmanConfItemFactory
 ---@field uv uv
 local M = {}
 
----@type ConfmanOptions
+---@type Modneo.ConfmanOptions
 M.options = {}
 
 ---gets the glob pattern for the given filename using the default_filter value
@@ -95,8 +95,16 @@ M.get_configs = function(category)
     return M.item_factory.convert(plugins_files, enabled)
 end
 
+local function single_result_to_item(found)
+if type(found) == 'string' then
+        return M.item_factory.new(found)
+    elseif type(found) == 'table' and #found == 1 then
+        return M.item_factory.new(found[1])
+    end
+end
+
 ---gets a single item by category and name
----@return ConfmanConfItem?
+---Modneo.ConfmanConfItem?
 ---if the name is occupied multiple times (e. g. with .lua and .vim) pass
 ---the name with the suffix appended
 M.get_item = function(category, name)
@@ -110,12 +118,23 @@ M.get_item = function(category, name)
     )
     found = vim.fn.glob(search_path, false, true, false)
 
-    local item
-    if type(found) == 'string' then
-        item = M.item_factory.new(found)
-    elseif type(found) == 'table' and #found == 1 then
-        item = M.item_factory.new(found[1])
-    end
+    return single_result_to_item(found)
+end
+
+---Gets the enable configuration with the given category and name
+---if found, otherwise nil.
+---@param cat string the plugin category
+---@param name string the plugin name
+---@return Modneo.ConfmanConfItem?
+M.get_enabled_conf = function(cat, name)
+    local search_path = vim.fs.joinpath(
+        M.get_plugin_dir(),
+        M.options.link_dir,
+        M.get_file_pattern(cat .. '-' .. name)
+    )
+    local found = vim.fn.glob(search_path, false, true, false)
+
+    return single_result_to_item(found)
 end
 
 ---lists all available plugins
@@ -132,7 +151,7 @@ end
 
 ---enables the given config item
 ---@type function
----@param item ConfmanConfItem
+---@param item Modneo.ConfmanConfItem
 M.enable_conf = function(item, force)
     local dst_file = M.get_link_name(item.category, item.name)
     if M.uv.fs_stat(dst_file) then
@@ -236,13 +255,6 @@ M.disable_command = function(opts)
     end
 end
 
----Gets the enable configuration with the given category and name
----if found, otherwise nil.
----@return ConfmanConfItem?
-M.get_enabled_conf = function(cat, name)
-    return M.get_item(M.options.link_dir, cat .. '-' .. name)
-end
-
 ---@type function
 ---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
@@ -255,10 +267,10 @@ end
 
 ---call on require to apply settings
 ---@type function
----@return ConfmanCore
+---@return Modneo.ConfmanCore
 M.init = function()
-    M.options = require('confman.config').options
-    M.item_factory = require('confman.confitem').setup(M.options)
+    M.options = require('modneo-confman.config').options
+    M.item_factory = require('modneo-confman.confitem').setup(M.options)
     M.uv = (vim.uv or vim.loop)
     return M
 end

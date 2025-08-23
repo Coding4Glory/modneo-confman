@@ -1,5 +1,5 @@
 local uv = (vim.uv or vim.loop)
-local core = require('confman').setup({
+local core = require('modneo-confman').setup({
     config_root = uv.cwd(),
     plugin_lib = 'tests/fixture_rw',
 })

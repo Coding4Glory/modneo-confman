@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@return ConfmanConfItem?
+---Modneo.ConfmanConfItem?
 local function get_by_line(plugins, lineno)
     for _, pl in pairs(plugins) do
         for _, p in ipairs(pl) do
@@ -28,13 +28,13 @@ local function get_by_line(plugins, lineno)
     return nil
 end
 
----@return ConfmanConfItem?
+---Modneo.ConfmanConfItem?
 local function get_selected(plugins, win)
     local _, row, _, _, _ = unpack(vim.fn.getcurpos(win))
     return get_by_line(plugins, row)
 end
 
----@class ConfmanDialogs
+---@class Modneo.ConfmanDialogs
 local M = {}
 
 ---sets the plugins as new content of the given buffer
@@ -83,7 +83,7 @@ M.dialog_name = 'ConfmanDialog'
 ---@type function
 ---@return FloatSize
 M.get_window_dimensions = function(buf)
-    return require('confman.ui.floatsize').new(buf)
+    return require('modneo-confman.ui.floatsize').new(buf)
 end
 
 ---@return integer?
@@ -108,8 +108,8 @@ end
 ---@type function
 ---@param plugins table
 M.show_plugins = function(plugins)
-    M.core = require('confman.core')
-    M.render = require('confman.ui.render').init()
+    M.core = require('modneo-confman.core')
+    M.render = require('modneo-confman.ui.render').init()
 
     local buf = M.get_buffer()
     if buf == nil then

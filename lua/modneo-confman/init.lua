@@ -16,10 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class ConfmanLoader
+---@class Modneo.ConfmanLoader
 local M = {}
 
-local sign_name = require('confman.ui.render').sign.name
+local sign_name = require('modneo-confman.ui.render').sign.name
 
 local function remove_sign()
     local found = vim.fn.sign_getdefined(sign_name)['name']
@@ -36,40 +36,40 @@ end
 
 ---initializes the plugin with default options
 M.init = function()
-    local options = require('confman.config').init()
+    local options = require('modneo-confman.config').init()
     add_sign(options.enabled_sign)
-    local core = require('confman.core').init()
-    require('confman.commands').setup(core)
+    local core = require('modneo-confman.core').init()
+    require('modneo-confman.commands').setup(core)
 end
 
 ---performs plugin setup with given options
----@param opts ConfmanOptions? custom settings
----@return ConfmanCore
+---@param opts Modneo.ConfmanOptions? custom settings
+---@return Modneo.ConfmanCore
 M.setup = function(opts)
-    local options = require('confman.config').setup(opts)
+    local options = require('modneo-confman.config').setup(opts)
     add_sign(options.enabled_sign)
-    local core = require('confman.core').init()
-    if package.loaded['confman.commands'] == nil then
-        require('confman.commands').setup(core)
+    local core = require('modneo-confman.core').init()
+    if package.loaded['modneo-confman.commands'] == nil then
+        require('modneo-confman.commands').setup(core)
         return core
     end
-    require('confman.commands').remove().setup(core)
+    require('modneo-confman.commands').remove().setup(core)
     return core
 end
 
 ---removes the plugin as far as possible
 M.remove = function()
-    require('confman.commands').remove()
+    require('modneo-confman.commands').remove()
     remove_sign()
     local to_remove = {
-        'confman.ui.dialog',
-        'confman.ui.render',
-        'confman.ui.floatsize',
-        'confman.health',
-        'confman.confitem',
-        'confman.core',
-        -- 'confman.commands', -- removes itself
-        'confman.config',
+        'modneo-confman.ui.dialog',
+        'modneo-confman.ui.render',
+        'modneo-confman.ui.floatsize',
+        'modneo-confman.health',
+        'modneo-confman.confitem',
+        'modneo-confman.core',
+        -- 'modneo-confman.commands', -- removes itself
+        'modneo-confman.config',
     }
     for _, pack in ipairs(to_remove) do
         if package.loaded[pack] ~= nil then
@@ -79,7 +79,7 @@ M.remove = function()
 end
 
 ---calls rmove and afterwards setup
----@param opts ConfmanOptions? custom settings
+---@param opts Modneo.ConfmanOptions? custom settings
 M.reload = function(opts)
     M.remove()
     M.setup(opts)

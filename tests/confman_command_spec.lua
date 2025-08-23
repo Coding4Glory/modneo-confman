@@ -1,10 +1,10 @@
-local core = require('confman').setup({
+local core = require('modneo-confman').setup({
     config_root = (vim.uv or vim.loop).cwd(),
     plugin_lib = 'tests/fixture_rw',
     link_dir = 'enabled'
 })
 
-describe('confman commands ', function()
+describe('modneo-confman commands ', function()
     it('ConfmanEnable', function()
         vim.cmd('ConfmanEnable cat_one/mod_two')
         assert.not_nil((vim.uv or vim.loop).fs_stat(core.get_link_name('cat_one', 'mod_two.lua')))

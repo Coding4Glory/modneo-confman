@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class ConfmanConfig
+---@class Modneo.ConfmanConfig
 local M = {}
 
----@class ConfmanOptions
+---@class Modneo.ConfmanOptions
 local defaults = {
     ---The directory where the plugin categories are located, defaults to lua/plugins.
     ---The path is expected to be relative.
-    ---@type string 
+    ---@type string
     plugin_lib = vim.fs.joinpath('lua', 'plugins'),
     ---The directory where links to enabled plugins shall be stored
     ---if not existing the directory will be created in the plugin_dir.
@@ -42,19 +42,19 @@ local defaults = {
     ---system does not use dot's for file suffix separation (is there any
     ---where neovim runs on?). Might be set to .lua to ignore .vim files original
     ---vice versa.
-    ---@type string 
+    ---@type string
     default_filter = '.[lv][iu][am]',
     ---the sign used to highlight enabled plugins
     ---@type string
     enabled_sign = '*'
 }
 
----@type ConfmanOptions
+---@type Modneo.ConfmanOptions
 M.options = defaults
 
 ---initializes the configuration
 ---will accumulate changes if called multiple times
----@param args ConfmanOptions?
+---@param args Modneo.ConfmanOptions?
 M.setup = function(args)
     M.options = vim.tbl_deep_extend('force', M.options or defaults, args or {})
     return M.options

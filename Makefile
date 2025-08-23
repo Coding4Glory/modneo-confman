@@ -19,7 +19,7 @@ WRITE_DIRS := ${TESTS_DIR}/fixture/${ENABLED_DIR} ${TESTS_DIR}/fixture_rw/${ENAB
 $(WRITE_DIRS):
 	@mkdir -p $@
 
-fixture: $(MOCKS) $(RW_MOCKS), $(WRITE_DIRS)
+fixture: $(MOCKS) $(RW_MOCKS) $(WRITE_DIRS)
 
 test: fixture
 	@nvim \
