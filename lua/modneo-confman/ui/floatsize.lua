@@ -47,8 +47,8 @@ local M = {
     y_border = 5,
 }
 
----@type function
 ---gets the hight for the floating window
+---@type function
 ---@param min integer|nil minimum height
 ---@return integer
 M.height = function(min)
@@ -56,37 +56,56 @@ M.height = function(min)
     return side_length(min or 3, max_height, M.content_height)
 end
 
----@type function
 ---gets the hight for the floating window
----@param min integer|nil 
+---@type function
+---@param min integer|nil
 ---@return integer
 M.width = function(min)
     local max_width = M.ui_width - (M.x_border * 2)
     return side_length(min or 10, max_width, M.content_width)
 end
 
----@type function
 ---gets the start row for the floating window
+---@type function
 ---@return integer
 M.row = function()
     return (M.ui_height/2) - (M.height()/2)
 end
 
----@type function
 ---gets the start col for the floating window
+---@type function
 ---@return integer
 M.col = function()
     return (M.ui_width/2) - (M.width()/2)
 end
 
+---function to call when the UI get's resized, e. g. in a terminal window
+---@type function
+M.on_resize = function()
+    M.ui_width = vim.o.columns
+    M.ui_height = vim.o.lines
+end
+
+---@param border table the list with border characters
+---@return vim.api.keyset.win_config
+M.to_options = function(border)
+    ---@type vim.api.keyset.win_config
+    return {
+        relative = 'editor',
+        width = M.width(),
+        height = M.height(),
+        col = M.col(),
+        row = M.row(),
+        border = border
+    }
+end
+
+---initializes the table for a new buffer
 ---@return FloatSize
 M.new = function(buf)
-    -- thought about caching vim_ui but this allows some adjustment
-    -- on resizing
-    local vim_ui = vim.api.nvim_list_uis()[1]
     local line_count = vim.api.nvim_buf_line_count(buf)
-    M.ui_width = vim_ui.width
-    M.ui_height = vim_ui.height
+    M.ui_width = vim.o.columns
+    M.ui_height = vim.o.lines
     M.content_height = line_count
     M.content_width = window_width(buf)
     return M

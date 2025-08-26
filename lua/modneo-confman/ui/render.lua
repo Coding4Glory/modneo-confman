@@ -84,7 +84,7 @@ end
 ---@param buf integer buffer to write to
 M.to_buf = function(plugins, buf)
     if vim.api.nvim_buf_line_count(buf) > 1 then
-        vim.api.nvim_buf_set_lines(buf, 1, -1, false, {''})
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {''})
         vim.fn.sign_unplace(M.sign.group, { buf = buf })
     end
 

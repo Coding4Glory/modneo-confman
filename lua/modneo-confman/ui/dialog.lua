@@ -86,23 +86,24 @@ M.get_window_dimensions = function(buf)
     return require('modneo-confman.ui.floatsize').new(buf)
 end
 
----@return integer?
+---@return integer
 M.get_buffer = function()
-    local bufid = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_name(bufid, M.dialog_name)
-    if bufid ~= 0 then return bufid end
-
-    bufid = vim.fn.bufnr(M.dialog_name)
+    local bufid = vim.fn.bufnr(M.dialog_name)
     if bufid > 0 then return bufid end
 
-    vim.notify('could not create or reuse buffer for Confman UI', vim.log.levels.ERROR)
-    return nil
+    bufid = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_name(bufid, M.dialog_name)
+    return bufid
 end
 
 M.close_dialog = function(win, buf)
     vim.api.nvim_win_close(win, true)
     vim.api.nvim_buf_delete(buf, { force = true })
 end
+
+---@type table
+---@private
+M.border = { '┌', '─', '┐', '│', '┘', '─', '└', '│' }
 
 ---creates a floating window for the given buffer
 ---@type function
@@ -120,16 +121,8 @@ M.show_plugins = function(plugins)
 
     local float_size = M.get_window_dimensions(buf)
 
-    local win_opts = {
-        relative = 'editor',
-        width = float_size.width(),
-        height = float_size.height(),
-        col = float_size.col(),
-        row = float_size.row(),
-        border = { '┌', '─', '┐', '│', '┘', '─', '└', '│' },
-    }
 
-    local win = vim.api.nvim_open_win(buf, true, win_opts)
+    local win = vim.api.nvim_open_win(buf, true, float_size.to_options(M.border))
     vim.api.nvim_set_option_value(
         'cursorline',
         true,
@@ -203,6 +196,15 @@ M.show_plugins = function(plugins)
             desc = 'b' .. buf .. ' Confman: disable',
             noremap = true,
             buffer = buf,
+        }
+    )
+    vim.api.nvim_create_autocmd('VimResized',
+        {
+            buffer = buf,
+            callback = function()
+                float_size.on_resize()
+                vim.api.nvim_win_set_config(win, float_size.to_options(M.border))
+            end
         }
     )
     vim.api.nvim_set_current_win(win)
