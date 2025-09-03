@@ -16,6 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
+---@class Modneo.Confman.Core.Strategy
+---@field enable_conf fun(item:Modneo.ConfmanConfItem,force:boolean)
+---@field disable_conf fun(item:Modneo.ConfmanConfItem,force:boolean)
+
 ---@class Modneo.ConfmanCore
 ---@field options Modneo.ConfmanOptions
 ---@field item_factory Modneo.ConfmanConfItemFactory
@@ -152,6 +156,7 @@ end
 ---enables the given config item
 ---@type function
 ---@param item Modneo.ConfmanConfItem
+---@param force boolean
 M.enable_conf = function(item, force)
     local dst_file = M.get_link_name(item.category, item.name)
     if M.uv.fs_stat(dst_file) then
@@ -212,7 +217,7 @@ end
 
 ---disables the given config item
 ---@type function
----@param item ConfmanConfItem
+---@param item Modneo.ConfmanConfItem
 M.disable_conf = function(item)
     local link_file = M.get_link_name(item.category, item.name)
     if M.uv.fs_stat(link_file) ~= nil then

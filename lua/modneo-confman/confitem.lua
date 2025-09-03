@@ -36,6 +36,7 @@ F.new = function(path)
     ---@field line_number integer contains the line number after set_line was called
     ---@field abspath string the absolute path to the plugin file
     ---@field enabled boolean a value indicating if the plugin is enabled
+    ---@field realpath string? the actual file path, resolved if symlink
     local M = {}
 
     ---initializes the instance

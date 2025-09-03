@@ -19,16 +19,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@class Modneo.ConfmanConfig
 local M = {}
 
+---@alias Modneo.ConfmanStategy
+---| 'symlink' uses symlinks for activation
+---| 'rename' appends suffix to deactivate
+
 ---@class Modneo.ConfmanOptions
+---@field get_plugin_dir? fun():string will be added during setup
 local defaults = {
     ---The directory where the plugin categories are located, defaults to lua/plugins.
     ---The path is expected to be relative.
     ---@type string
     plugin_lib = vim.fs.joinpath('lua', 'plugins'),
-    ---The directory where links to enabled plugins shall be stored
-    ---if not existing the directory will be created in the plugin_dir.
+    ---The strategy to use to distinguish between enabled and disabled
+    ---configurations. This setting defines if following options are
+    ---considered. Possible options are 'symlink' and 'rename', defaults to
+    ---'symlink'.
+    ---@type Modneo.ConfmanStategy
+    strategy = 'symlink',
+    ---The suffix to add to disabled files if the strategy is set to rename
+    disabled_suffix = '.off',
+    ---This setting is only considered for the *symlink* strategy.
+    ---The directory where links to enabled plugins shall be stored if not
+    ---existing the directory will be created in the plugin_dir. The same
+    ---directory has to be set in lazy, has to be created within plugin_dir.
     ---@type string
-    ---The same directory has to be set in lazy, will be created within plugin_dir
     link_dir = 'enabled',
     ---The directory where the user configuration is stored, defaults to
     ---`~/.config/nvim.` The default value is retrieved via `stdpath` so
@@ -56,14 +70,24 @@ M.options = defaults
 ---will accumulate changes if called multiple times
 ---@param args Modneo.ConfmanOptions?
 M.setup = function(args)
-    M.options = vim.tbl_deep_extend('force', M.options or defaults, args or {})
+    M.options = vim.tbl_deep_extend('force', M.options, args or {})
+    M.options.get_plugin_dir = function()
+        return vim.fs.joinpath(M.options.config_root, M.options.plugin_lib)
+    end
     return M.options
 end
 
 ---reinitializes the configuration from defaults
 M.init = function()
-    M.options = vim.tbl_deep_extend('keep', defaults, {})
-    return M.options
+    return M.setup()
+end
+
+M.get_plugin_dir = function ()
+    return vim.fs.joinpath(
+        vim.fn.stdpath('config'),
+        M.options.plugin_lib
+    )
+
 end
 
 return M
