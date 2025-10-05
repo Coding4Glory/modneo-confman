@@ -27,35 +27,40 @@ local function get_link_name(category, filename)
     )
 end
 
+local options = require('modneo-confman.config').options
+
 ---@type Modneo.Confman.Core.Strategy
-return {
+local M = {
     enable_conf = function(item, force)
         local dst_file = get_link_name(item.category, item.name)
         if vim.uv.fs_stat(dst_file) then
             if not (force or false) then
                 if vim.uv.fs_realpath(dst_file) ~= item.realpath then
-                    vim.print(
+                    error(
                         '!! Link has different target, add bang ! to override'
                     )
-                    return
                 end
-                vim.print(
+                error(
                     '!! Plugin already enabled, add bang ! to recreate link'
                 )
-                return
             end
             vim.uv.fs_unlink(dst_file)
         end
 
         vim.uv.fs_symlink(item.realpath, dst_file)
-        item.enabled = true
     end,
 
     disable_conf = function(item)
         local link_file = get_link_name(item.category, item.name)
         if vim.uv.fs_stat(link_file) ~= nil then
             vim.uv.fs_unlink(link_file)
-            item.enabled = false
         end
     end,
+
+    is_enabled = function(item)
+        return vim.fs.basename(vim.fs.dirname(item.abspath))
+            == options.link_dir
+    end,
 }
+
+return M

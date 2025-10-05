@@ -16,10 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local config = require('modneo-confman.config')
+local options = require('modneo-confman.config').options
 
 ---renames the file
----@param item Modneo.ConfmanConfItem the item to rename
+---@param item Modneo.Confman.ConfItem the item to rename
 ---@param new_basename string the new basename
 local function rename(item, new_basename)
     local new_path = vim.fs.joinpath(item.realpath, new_basename)
@@ -27,12 +27,12 @@ local function rename(item, new_basename)
 end
 
 ---strips the suffix if existing
----@param item Modneo.ConfmanConfItem
+---@param item Modneo.Confman.ConfItem
 ---@return string?
 local function get_enabled_name(item)
     local new_name = vim.fs
         .basename(item.realpath)
-        :match('(.*)' .. config.options.disabled_suffix)
+        :match('(.*)' .. options.disabled_suffix)
 
     if new_name == nil or new_name == '' then
         -- appearently not disabled - return current name to prevent damage
@@ -40,18 +40,22 @@ local function get_enabled_name(item)
     end
 end
 
----@param item Modneo.ConfmanConfItem
+---@param item Modneo.Confman.ConfItem
 ---@return string
 local function get_disabled_name(item)
-    return vim.fs.basename(item.realpath) .. config.options.disabled_suffix
+    return vim.fs.basename(item.realpath) .. options.disabled_suffix
 end
 
 ---@type Modneo.Confman.Core.Strategy
-return {
+local M = {
     enable_conf = function(item, _)
         local new_name = get_enabled_name(item)
         if new_name == nil then
-            error('could not enable ' .. item.name .. ' file might not exist anymore')
+            error(
+                'could not enable '
+                    .. item.name
+                    .. ' file might not exist anymore'
+            )
         end
         rename(item, new_name)
         item.enabled = true
@@ -62,4 +66,13 @@ return {
         rename(item, new_name)
         item.enabled = false
     end,
+
+    is_enabled = function(item)
+        return not vim.endswith(
+            vim.fs.basename(item.realpath or item.abspath),
+            options.disabled_suffix
+        )
+    end,
 }
+
+return M

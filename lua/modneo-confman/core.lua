@@ -17,8 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
 ---@class Modneo.Confman.Core.Strategy
----@field enable_conf fun(item:Modneo.ConfmanConfItem,force:boolean)
----@field disable_conf fun(item:Modneo.ConfmanConfItem,force:boolean)
+---@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean)
+---@field disable_conf fun(item:Modneo.Confman.ConfItem,force:boolean)
+---@field is_enabled fun(item:Modneo.Confman.ConfItem):boolean
 
 ---@class Modneo.ConfmanCore
 ---@field options Modneo.ConfmanOptions
@@ -29,6 +30,7 @@ local M = {}
 ---@type Modneo.ConfmanOptions
 M.options = {}
 
+-- TODO: move to config
 ---gets the glob pattern for the given filename using the default_filter value
 ---@param name string? the filename, ommitting or nil will result in an asterisk `*`.
 M.get_file_pattern = function(name)
@@ -129,7 +131,7 @@ end
 ---if found, otherwise nil.
 ---@param cat string the plugin category
 ---@param name string the plugin name
----@return Modneo.ConfmanConfItem?
+---@return Modneo.Confman.ConfItem?
 M.get_enabled_conf = function(cat, name)
     local search_path = vim.fs.joinpath(
         M.get_plugin_dir(),
@@ -155,28 +157,11 @@ end
 
 ---enables the given config item
 ---@type function
----@param item Modneo.ConfmanConfItem
+---@param item Modneo.Confman.ConfItem
 ---@param force boolean
+---@deprecated Modneo.Confman.ConfItem.enable(boolean)
 M.enable_conf = function(item, force)
-    local dst_file = M.get_link_name(item.category, item.name)
-    if M.uv.fs_stat(dst_file) then
-        if not (force or false) then
-            if M.uv.fs_realpath(dst_file) ~= item.realpath then
-                vim.print(
-                    '!! Link has different target, add bang ! to override'
-                )
-                return
-            end
-            vim.print(
-                '!! Plugin already enabled, add bang ! to recreate link'
-            )
-            return
-        end
-        M.uv.fs_unlink(dst_file)
-    end
-
-    M.uv.fs_symlink(item.realpath, dst_file)
-    item.enabled = true
+    M.strategy.enable_conf(item, force)
 end
 
 ---enables the given configuration file or a whole category
@@ -217,13 +202,10 @@ end
 
 ---disables the given config item
 ---@type function
----@param item Modneo.ConfmanConfItem
+---@param item Modneo.Confman.ConfItem
+---@deprecated Modneo.Confman.ConfItem.disable()
 M.disable_conf = function(item)
-    local link_file = M.get_link_name(item.category, item.name)
-    if M.uv.fs_stat(link_file) ~= nil then
-        M.uv.fs_unlink(link_file)
-        item.enabled = false
-    end
+    M.strategy.disable_conf(item)
 end
 
 ---disables the plugin identified by category and name
@@ -275,7 +257,9 @@ end
 ---@return Modneo.ConfmanCore
 M.init = function()
     M.options = require('modneo-confman.config').options
-    M.item_factory = require('modneo-confman.confitem').setup(M.options)
+    M.item_factory = require('modneo-confman.confitem').setup()
+    ---@type Modneo.Confman.Core.Strategy
+    M.strategy = require('modneo-confman.strategy.' .. M.options.strategy)
     M.uv = (vim.uv or vim.loop)
     return M
 end

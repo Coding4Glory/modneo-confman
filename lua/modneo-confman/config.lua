@@ -19,9 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@class Modneo.ConfmanConfig
 local M = {}
 
----@alias Modneo.ConfmanStategy
+---@alias Modneo.ConfmanStrategy
 ---| 'symlink' uses symlinks for activation
 ---| 'rename' appends suffix to deactivate
+
+local strategies = { 'symlink', 'rename' }
 
 ---@class Modneo.ConfmanOptions
 ---@field get_plugin_dir? fun():string will be added during setup
@@ -73,6 +75,9 @@ M.setup = function(args)
     M.options = vim.tbl_deep_extend('force', M.options, args or {})
     M.options.get_plugin_dir = function()
         return vim.fs.joinpath(M.options.config_root, M.options.plugin_lib)
+    end
+    if not vim.tbl_contains(strategies, M.options.strategy) then
+        error('Strategy ' .. strategies ' .. is not supported!')
     end
     return M.options
 end
