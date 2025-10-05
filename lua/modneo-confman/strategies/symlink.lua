@@ -103,4 +103,6 @@ local M = {
     end,
 }
 
-return M
+return function (S)
+    S['symlink'] = M
+end

@@ -101,4 +101,6 @@ local M = {
     end,
 }
 
-return M
+return function (S)
+    S['rename'] = M
+end

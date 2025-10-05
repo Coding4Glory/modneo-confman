@@ -36,7 +36,7 @@ local defaults = {
     ---configurations. This setting defines if following options are
     ---considered. Possible options are 'symlink' and 'rename', defaults to
     ---'symlink'.
-    ---@type Modneo.ConfmanStategy
+    ---@type Modneo.ConfmanStrategy
     strategy = 'symlink',
     ---The suffix to add to disabled files if the strategy is set to rename
     disabled_suffix = '.off',

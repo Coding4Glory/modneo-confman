@@ -215,7 +215,7 @@ M.disable = function(cat, name, force)
         M.uv.fs_unlink(found.abspath)
         return
     end
-    warn('link found, but not matching item. Use bang ! to remove anyway')
+    print('link found, but not matching item. Use bang ! to remove anyway')
 end
 
 ---disables the given plugin
@@ -246,7 +246,7 @@ M.init = function()
     M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
     ---@type Modneo.Confman.Core.Strategy
-    M.strategy = require('modneo-confman.strategy.' .. M.options.strategy)
+    M.strategy = require('modneo-confman.strategies')[M.options.strategy]
     M.uv = (vim.uv or vim.loop)
     return M
 end
