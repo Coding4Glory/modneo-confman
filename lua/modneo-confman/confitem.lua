@@ -80,9 +80,8 @@ end
 
 ---creates a table of ConfmanConfItem instances based on the passed table
 ---@param plugins table
----@param enabled table
----@return table a categorized table with ConfmanConfItem lists as values
-F.convert = function(plugins, enabled)
+---@return table<string,Modneo.Confman.ConfItem> a categorized table with ConfmanConfItem lists as values
+F.convert = function(plugins)
     local result = {}
 
     if plugins == nil then
@@ -93,10 +92,6 @@ F.convert = function(plugins, enabled)
     if #plugins > 0 then
         for _, file in ipairs(plugins) do
             local item = F.new(file)
-            local e = enabled[item.category .. '/' .. item.name]
-            if e ~= nil then
-                item = e
-            end
             if result[item.category] == nil then
                 result[item.category] = {}
             end
@@ -112,10 +107,6 @@ F.convert = function(plugins, enabled)
         if pl ~= nil and type(pl) == 'table' then
             for _, file in ipairs(pl) do
                 local item = F.new(file)
-                local e = enabled[item.category .. '/' .. item.name]
-                if  e ~= nil then
-                    converted = e
-                end
                 table.insert(converted, item)
             end
         end

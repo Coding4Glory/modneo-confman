@@ -16,8 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local options = require('modneo-confman.config').options
+local config = require('modneo-confman.config')
 
+local search = {
+    config.options.default_filter,
+    config.options.disabled_suffix,
+}
 ---renames the file
 ---@param item Modneo.Confman.ConfItem the item to rename
 ---@param new_basename string the new basename
@@ -32,7 +36,7 @@ end
 local function get_enabled_name(item)
     local new_name = vim.fs
         .basename(item.realpath)
-        :match('(.*)' .. options.disabled_suffix)
+        :match('(.*)' .. config.options.disabled_suffix)
 
     if new_name == nil or new_name == '' then
         -- appearently not disabled - return current name to prevent damage
@@ -43,7 +47,13 @@ end
 ---@param item Modneo.Confman.ConfItem
 ---@return string
 local function get_disabled_name(item)
-    return vim.fs.basename(item.realpath) .. options.disabled_suffix
+    return vim.fs.basename(item.realpath) .. config.options.disabled_suffix
+end
+
+local function get_files(folder, pattern)
+    local search_path =
+        vim.fs.joinpath(config.get_plugin_dir(), folder or '*', pattern)
+    return vim.fn.glob(search_path, false, true, true)
 end
 
 ---@type Modneo.Confman.Core.Strategy
@@ -70,8 +80,24 @@ local M = {
     is_enabled = function(item)
         return not vim.endswith(
             vim.fs.basename(item.realpath or item.abspath),
-            options.disabled_suffix
+            config.options.disabled_suffix
         )
+    end,
+
+    find = function(category, name)
+        for _, p in ipairs(search) do
+            return get_files(category, config.get_file_pattern(name, p))[1]
+        end
+    end,
+
+    get_configs = function(category)
+        local found = {}
+        for _, p in ipairs(search) do
+            found =
+                vim.tbl_deep_extend('error', get_files(category, p), found)
+        end
+
+        return found
     end,
 }
 

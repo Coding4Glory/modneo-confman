@@ -16,10 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
+local config = require('modneo-confman.config')
+
 ---@param category string the plugin category
 ---@param filename string must be the exact basename (with suffix)
 local function get_link_name(category, filename)
-    local config = require('modneo-confman.config')
     return vim.fs.joinpath(
         config.get_plugin_dir(),
         config.options.link_dir,
@@ -27,7 +28,18 @@ local function get_link_name(category, filename)
     )
 end
 
-local options = require('modneo-confman.config').options
+local function get_files(folder, enabled)
+    local search_path = vim.fs.joinpath(
+        config.get_plugin_dir(),
+        folder or '*',
+        config.get_file_pattern()
+    )
+    local found = vim.fn.glob(search_path, false, true, true)
+    for i, f in ipairs(found) do
+        found[i] = enabled[f] or f
+    end
+    return found
+end
 
 ---@type Modneo.Confman.Core.Strategy
 local M = {
@@ -59,7 +71,35 @@ local M = {
 
     is_enabled = function(item)
         return vim.fs.basename(vim.fs.dirname(item.abspath))
-            == options.link_dir
+            == config.options.link_dir
+    end,
+
+    find = function(category, name)
+        local pattern = vim.fs.joinpath(
+            config.get_plugin_dir(),
+            category,
+            config.get_file_pattern(name)
+        )
+        local found = vim.fn.glob(pattern, false, true, false)
+        if #found == 1 then
+            local link = get_link_name(category, vim.fs.basename(found[1]))
+            if vim.uv.fs_stat(link) ~= nil then
+                return link
+            end
+            return found[1]
+        end
+        return nil
+    end,
+
+    get_configs = function(category)
+        local enabled = {}
+        if category ~= config.options.link_dir then
+            for _, l in pairs(get_files(config.options.link_dir, {})) do
+                enabled[vim.uv.fs_realpath(l)] = l
+            end
+        end
+
+        return get_files(category, enabled)
     end,
 }
 

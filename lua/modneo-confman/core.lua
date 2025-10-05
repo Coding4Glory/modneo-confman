@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ---@class Modneo.Confman.Core.Strategy
 ---@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean)
----@field disable_conf fun(item:Modneo.Confman.ConfItem,force:boolean)
+---@field disable_conf fun(item:Modneo.Confman.ConfItem)
 ---@field is_enabled fun(item:Modneo.Confman.ConfItem):boolean
+---@field get_configs fun(category:string?):string[]
+---@field find fun(category:string,name:string):string?
 
 ---@class Modneo.ConfmanCore
 ---@field options Modneo.ConfmanOptions
@@ -30,9 +32,7 @@ local M = {}
 ---@type Modneo.ConfmanOptions
 M.options = {}
 
--- TODO: move to config
----gets the glob pattern for the given filename using the default_filter value
----@param name string? the filename, ommitting or nil will result in an asterisk `*`.
+---@deprecated Modneo.Confman.Config.get_file_pattern(string)
 M.get_file_pattern = function(name)
     name = name or '*'
     if name:match('.+%' .. M.options.default_filter .. '$') == nil then
@@ -42,7 +42,7 @@ M.get_file_pattern = function(name)
     return name
 end
 
----@return string
+---@deprecated Modneo.Confman.Config.get_plugin_dir()
 M.get_plugin_dir = function()
     return vim.fs.joinpath(M.options.config_root, M.options.plugin_lib)
 end
@@ -51,7 +51,7 @@ end
 ---@param filename string must be the exact basename (with suffix)
 M.get_link_name = function(category, filename)
     return vim.fs.joinpath(
-        M.get_plugin_dir(),
+        M.options.get_plugin_dir(),
         M.options.link_dir,
         category .. '-' .. filename
     )
@@ -61,7 +61,7 @@ end
 ---@return table
 M.get_categories = function()
     local r = {}
-    for name, type in vim.fs.dir(M.get_plugin_dir()) do
+    for name, type in vim.fs.dir(M.options.get_plugin_dir()) do
         if type == 'directory' then
             table.insert(r, name)
         end
@@ -71,7 +71,7 @@ end
 
 M.get_category = function(cat)
     local r = {}
-    for name, type in vim.fs.dir(vim.fs.joinpath(M.get_plugin_dir(), cat)) do
+    for name, type in vim.fs.dir(vim.fs.joinpath(M.options.get_plugin_dir(), cat)) do
         if type == 'file' then
             table.insert(r, cat .. '/' .. name)
         end
@@ -83,22 +83,8 @@ end
 ---gets a list with all plugins
 ---@param category string? may be used to restrict to specific category
 M.get_configs = function(category)
-    local enabled = {}
-    if category ~= M.options.link_dir then
-        for _, l in pairs(M.get_configs(M.options.link_dir)) do
-            for _, e in ipairs(l) do
-                enabled[e.category .. '/' .. e.name] = e
-            end
-        end
-    end
-
-    local search_path = vim.fs.joinpath(
-        M.get_plugin_dir(),
-        category or '*',
-        M.get_file_pattern()
-    )
-    local plugins_files = vim.fn.glob(search_path, false, true, true)
-    return M.item_factory.convert(plugins_files, enabled)
+    local config_files = M.strategy.get_configs(category)
+    return M.item_factory.convert(config_files)
 end
 
 local function single_result_to_item(found)
@@ -118,9 +104,9 @@ M.get_item = function(category, name)
     if found ~= nil then return found end
 
     local search_path = vim.fs.joinpath(
-        M.get_plugin_dir(),
+        M.config.get_plugin_dir(),
         category,
-        M.get_file_pattern(name)
+        M.config.get_file_pattern(name)
     )
     found = vim.fn.glob(search_path, false, true, false)
 
@@ -134,9 +120,9 @@ end
 ---@return Modneo.Confman.ConfItem?
 M.get_enabled_conf = function(cat, name)
     local search_path = vim.fs.joinpath(
-        M.get_plugin_dir(),
+        M.config.get_plugin_dir(),
         M.options.link_dir,
-        M.get_file_pattern(cat .. '-' .. name)
+        M.config.get_file_pattern(cat .. '-' .. name)
     )
     local found = vim.fn.glob(search_path, false, true, false)
 
@@ -177,7 +163,7 @@ M.enable = function(category, name, force)
                     'Config file matching %s/%s not found in %s',
                     category,
                     name,
-                    M.get_plugin_dir()
+                    M.options.get_plugin_dir()
                 )
             )
         end
@@ -256,7 +242,8 @@ end
 ---@type function
 ---@return Modneo.ConfmanCore
 M.init = function()
-    M.options = require('modneo-confman.config').options
+    M.config = require('modneo-confman.config')
+    M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
     ---@type Modneo.Confman.Core.Strategy
     M.strategy = require('modneo-confman.strategy.' .. M.options.strategy)

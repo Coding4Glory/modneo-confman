@@ -18,15 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 return {
     check = function()
-        local options = require'modneo-confman.config'.options
-        if options == nil then
+        local config = require'modneo-confman.config'
+        if config.options == nil then
             vim.health.error('modneo-confman is not configured properly')
             return
         end
 
         local core = require'modneo-confman.core'
 
-        local plugin_dir = core.get_plugin_dir()
+        local plugin_dir = config.get_plugin_dir()
         if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then
             local cats = core.get_configs()
             local cat_count = 0
@@ -44,7 +44,7 @@ return {
             vim.health.error(string.format('plugin directory [%s] does not exist', plugin_dir))
         end
 
-        local enabled_dir = vim.fs.joinpath(core.get_plugin_dir(), options.link_dir)
+        local enabled_dir = vim.fs.joinpath(config.get_plugin_dir(), config.options.link_dir)
         if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then
             vim.health.ok('enabled-plugin directory exists ' .. table.maxn(vim.fn.glob(vim.fs.joinpath(enabled_dir, '*'), false, true, false)) .. ' files found')
         else
