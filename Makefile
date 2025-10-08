@@ -1,25 +1,28 @@
 PLENARY_INIT = tests/init.lua
 TESTS_DIR = tests
+FIXTURE_DIR = $(TESTS_DIR)/fixture
 ENABLED_DIR = enabled
 CONTAINER_ENGINE = $(shell which podman || which docker || which false)
 
 .PHONY: fixture test clean docs
 
 
-MOCKS := ${TESTS_DIR}/fixture/cat_one/mod_one.lua ${TESTS_DIR}/fixture/cat_one/mod_two.lua ${TESTS_DIR}/fixture/cat_two/mod_three.lua ${TESTS_DIR}/fixture/cat_two/mod_four.lua
+MOCKS := ${FIXTURE_DIR}/ro/cat_one/mod_one.lua ${FIXTURE_DIR}/ro/cat_one/mod_two.lua ${FIXTURE_DIR}/ro/cat_two/mod_three.lua ${FIXTURE_DIR}/ro/cat_two/mod_four.lua
 
-RW_MOCKS := $(subst fixture,fixture_rw,$(MOCKS))
+RW_MOCKS := $(subst ro,rw,$(MOCKS))
+REN_MOCKS := $(subst ro,rename,$(MOCKS))
+LINK_MOCKS := $(subst ro,link,$(MOCKS))
 
-$(MOCKS) $(RW_MOCKS):
+$(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS):
 	@mkdir -p $(@D)
 	@echo -e "vim.g.confman_test_$(notdir $(@:%.lua=%)) = 1\n" > $@
 
-WRITE_DIRS := ${TESTS_DIR}/fixture/${ENABLED_DIR} ${TESTS_DIR}/fixture_rw/${ENABLED_DIR}
+WRITE_DIRS := $(FIXTURE_DIR)/ro/$(ENABLED_DIR) $(FIXTURE_DIR)/rw/$(ENABLED_DIR) $(FIXTURE_DIR)/rename/$(ENABLED_DIR) $(FIXTURE_DIR)/link/$(ENABLED_DIR)
 
 $(WRITE_DIRS):
 	@mkdir -p $@
 
-fixture: $(MOCKS) $(RW_MOCKS) $(WRITE_DIRS)
+fixture: $(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS) $(WRITE_DIRS)
 
 test: fixture
 	@nvim \

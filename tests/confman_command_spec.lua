@@ -1,6 +1,6 @@
 local core = require('modneo-confman').setup({
     config_root = (vim.uv or vim.loop).cwd(),
-    plugin_lib = 'tests/fixture_rw',
+    plugin_lib = 'tests/fixture/rw',
     link_dir = 'enabled'
 })
 

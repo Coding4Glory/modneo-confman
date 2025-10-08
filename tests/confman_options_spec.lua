@@ -1,7 +1,7 @@
 local uv = (vim.uv or vim.loop)
 local readonly_settings = {
     config_root = uv.cwd(),
-    plugin_lib = 'tests/fixture',
+    plugin_lib = 'tests/fixture/ro',
 }
 require('modneo-confman.config').setup(readonly_settings)
 

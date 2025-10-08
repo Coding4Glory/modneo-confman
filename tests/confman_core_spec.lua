@@ -2,11 +2,11 @@ local plugin = require('modneo-confman')
 local uv = (vim.uv or vim.loop)
 local readonly_settings = {
     config_root = uv.cwd(),
-    plugin_lib = 'tests/fixture',
+    plugin_lib = 'tests/fixture/ro',
 }
 local readwrite_settings = {
     config_root = uv.cwd(),
-    plugin_lib = 'tests/fixture_rw',
+    plugin_lib = 'tests/fixture/rw',
 }
 
 local function count_configs(t)

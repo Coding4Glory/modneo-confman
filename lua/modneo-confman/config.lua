@@ -89,7 +89,7 @@ end
 
 M.get_plugin_dir = function ()
     return vim.fs.joinpath(
-        vim.fn.stdpath('config'),
+        (M.options.config_root or vim.fn.stdpath('config')),
         M.options.plugin_lib
     )
 end

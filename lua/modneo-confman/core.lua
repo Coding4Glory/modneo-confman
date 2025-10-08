@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
 ---@class Modneo.Confman.Core.Strategy
----@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean)
+---@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean?)
 ---@field disable_conf fun(item:Modneo.Confman.ConfItem)
 ---@field is_enabled fun(item:Modneo.Confman.ConfItem):boolean
 ---@field get_configs fun(category:string?):string[]
@@ -47,11 +47,12 @@ M.get_plugin_dir = function()
     return vim.fs.joinpath(M.options.config_root, M.options.plugin_lib)
 end
 
+---@deprecated
 ---@param category string the plugin category
 ---@param filename string must be the exact basename (with suffix)
 M.get_link_name = function(category, filename)
     return vim.fs.joinpath(
-        M.options.get_plugin_dir(),
+        M.config.get_plugin_dir(),
         M.options.link_dir,
         category .. '-' .. filename
     )
@@ -71,13 +72,14 @@ end
 
 M.get_category = function(cat)
     local r = {}
-    for name, type in vim.fs.dir(vim.fs.joinpath(M.options.get_plugin_dir(), cat)) do
+    for name, type in
+    vim.fs.dir(vim.fs.joinpath(M.options.get_plugin_dir(), cat))
+    do
         if type == 'file' then
             table.insert(r, cat .. '/' .. name)
         end
     end
     return r
-
 end
 
 ---gets a list with all plugins
@@ -88,7 +90,7 @@ M.get_configs = function(category)
 end
 
 local function single_result_to_item(found)
-if type(found) == 'string' then
+    if type(found) == 'string' then
         return M.item_factory.new(found)
     elseif type(found) == 'table' and #found == 1 then
         return M.item_factory.new(found[1])
@@ -99,18 +101,12 @@ end
 ---Modneo.ConfmanConfItem?
 ---if the name is occupied multiple times (e. g. with .lua and .vim) pass
 ---the name with the suffix appended
+---@return Modneo.Confman.ConfItem?
 M.get_item = function(category, name)
-    local found = M.get_enabled_conf(category, name)
-    if found ~= nil then return found end
-
-    local search_path = vim.fs.joinpath(
-        M.config.get_plugin_dir(),
-        category,
-        M.config.get_file_pattern(name)
-    )
-    found = vim.fn.glob(search_path, false, true, false)
-
-    return single_result_to_item(found)
+    local found = M.strategy.find(category, name)
+    if found ~= nil then
+        return single_result_to_item(found)
+    end
 end
 
 ---Gets the enable configuration with the given category and name
@@ -118,6 +114,7 @@ end
 ---@param cat string the plugin category
 ---@param name string the plugin name
 ---@return Modneo.Confman.ConfItem?
+---@deprecated
 M.get_enabled_conf = function(cat, name)
     local search_path = vim.fs.joinpath(
         M.config.get_plugin_dir(),
@@ -167,13 +164,13 @@ M.enable = function(category, name, force)
                 )
             )
         end
-        M.enable_conf(item, force)
+        M.strategy.enable_conf(item, force)
         return
     end
 
     local all_from_cat = M.get_configs(category)
     for _, x in ipairs(all_from_cat[category]) do
-        M.enable_conf(x)
+        M.strategy.enable_conf(x)
     end
 end
 
@@ -206,7 +203,7 @@ M.disable = function(cat, name, force)
 
     local expected = M.get_item(cat, name)
     if expected ~= nil and expected.realpath == found.realpath then
-        M.disable_conf(expected)
+        M.strategy.disable_conf(expected)
         return
     end
 
@@ -231,11 +228,10 @@ end
 ---@type function
 ---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
-    local found = M.get_enabled_conf(cat, name)
+    local found = M.strategy.find(cat, name)
     if found ~= nil then
-        return true
+        return M.item_factory.new(found).enabled
     end
-    return false
 end
 
 ---call on require to apply settings

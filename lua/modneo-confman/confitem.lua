@@ -23,7 +23,7 @@ local F = {}
 
 F.setup = function()
     F.options = require('modneo-confman.config').options
-    F.strategy = require('modneo-confman.strategy.' .. F.options.strategy)
+    F.strategy = require('modneo-confman.strategies')[F.options.strategy]
     return F
 end
 
@@ -57,7 +57,8 @@ F.new = function(path)
         M.enabled = F.strategy.is_enabled(M)
     end
 
-    --- enables the configuration file described by this item
+    ---enables the configuration file described by this item
+    ---@param force boolean?
     M.enable = function(force)
         local success, err = pcall(F.strategy.enable_conf, M, force)
         if not success then
