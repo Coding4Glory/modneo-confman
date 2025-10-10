@@ -10,7 +10,7 @@ CONTAINER_ENGINE = $(shell which podman || which docker || which false)
 MOCKS := ${FIXTURE_DIR}/ro/cat_one/mod_one.lua ${FIXTURE_DIR}/ro/cat_one/mod_two.lua ${FIXTURE_DIR}/ro/cat_two/mod_three.lua ${FIXTURE_DIR}/ro/cat_two/mod_four.lua
 
 RW_MOCKS := $(subst ro,rw,$(MOCKS))
-REN_MOCKS := $(subst ro,rename,$(MOCKS))
+REN_MOCKS := $(addsuffix .off,$(subst ro,rename,$(MOCKS)))
 LINK_MOCKS := $(subst ro,link,$(MOCKS))
 
 $(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS):

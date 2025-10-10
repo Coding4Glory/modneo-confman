@@ -27,6 +27,7 @@ local search = {
 ---@param new_basename string the new basename
 local function rename(item, new_basename)
     local new_path = vim.fs.joinpath(item.realpath, new_basename)
+    if new_path == item.realpath then return end
     vim.uv.fs_rename(item.realpath, new_path)
 end
 
@@ -50,6 +51,10 @@ local function get_disabled_name(item)
     return vim.fs.basename(item.realpath) .. config.options.disabled_suffix
 end
 
+---get files from folder inside plugin directory matching pattern
+---@param folder string simple folder name
+---@param pattern string file pattern to match agains
+---@return any
 local function get_files(folder, pattern)
     local search_path =
         vim.fs.joinpath(config.get_plugin_dir(), folder or '*', pattern)
@@ -71,7 +76,7 @@ local M = {
         item.enabled = true
     end,
 
-    disable_conf = function(item, _)
+    disable_conf = function(item)
         local new_name = get_disabled_name(item)
         rename(item, new_name)
         item.enabled = false
@@ -86,7 +91,8 @@ local M = {
 
     find = function(category, name)
         for _, p in ipairs(search) do
-            return get_files(category, config.get_file_pattern(name, p))[1]
+            local found = get_files(category, config.get_file_pattern(name, p))[1]
+            if #found == 1 then return found[1] end
         end
     end,
 

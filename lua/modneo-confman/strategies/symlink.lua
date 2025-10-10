@@ -34,6 +34,7 @@ local function get_files(folder, enabled)
         folder or '*',
         config.get_file_pattern()
     )
+
     local found = vim.fn.glob(search_path, false, true, true)
     for i, f in ipairs(found) do
         found[i] = enabled[f] or f
@@ -45,7 +46,7 @@ end
 local M = {
     enable_conf = function(item, force)
         local dst_file = get_link_name(item.category, item.name)
-        if vim.uv.fs_stat(dst_file) then
+        if vim.uv.fs_stat(dst_file) ~= nil then
             if not (force or false) then
                 if vim.uv.fs_realpath(dst_file) ~= item.realpath then
                     error(
@@ -60,6 +61,7 @@ local M = {
         end
 
         vim.uv.fs_symlink(item.realpath, dst_file)
+        item.abspath = dst_file
     end,
 
     disable_conf = function(item)

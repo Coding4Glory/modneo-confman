@@ -35,9 +35,11 @@ local defaults = {
     ---The strategy to use to distinguish between enabled and disabled
     ---configurations. This setting defines if following options are
     ---considered. Possible options are 'symlink' and 'rename', defaults to
-    ---'symlink'.
+    ---'symlink' on linux and 'rename' on windows.
     ---@type Modneo.ConfmanStrategy
-    strategy = 'symlink',
+    strategy = vim.startswith((vim.uv or vim.loop).os_uname().sysname, 'Windows')
+             and 'rename'
+             or 'symlink',
     ---The suffix to add to disabled files if the strategy is set to rename
     disabled_suffix = '.off',
     ---This setting is only considered for the *symlink* strategy.

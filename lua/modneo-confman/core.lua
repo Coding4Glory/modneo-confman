@@ -164,13 +164,13 @@ M.enable = function(category, name, force)
                 )
             )
         end
-        M.strategy.enable_conf(item, force)
+        item.enable(force)
         return
     end
 
     local all_from_cat = M.get_configs(category)
     for _, x in ipairs(all_from_cat[category]) do
-        M.strategy.enable_conf(x)
+        x.enable(force)
     end
 end
 
@@ -196,23 +196,11 @@ end
 ---@param name string the name of the config file
 ---@param force boolean? disables the module, even if not expected
 M.disable = function(cat, name, force)
-    local found = M.get_item(M.options.link_dir, cat .. '-' .. name)
+    local found = M.get_item(cat, name)
     if found == nil then
-        error('link to disable not found')
+        error('config to disable not found')
     end
-
-    local expected = M.get_item(cat, name)
-    if expected ~= nil and expected.realpath == found.realpath then
-        M.strategy.disable_conf(expected)
-        return
-    end
-
-    -- fallback for orphaned
-    if force or false then
-        M.uv.fs_unlink(found.abspath)
-        return
-    end
-    print('link found, but not matching item. Use bang ! to remove anyway')
+    found.disable()
 end
 
 ---disables the given plugin
