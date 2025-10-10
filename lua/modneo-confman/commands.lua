@@ -63,6 +63,7 @@ end
 
 ---removes the commands prefixed with Confman
 M.remove = function()
+    if package.loaded['modneo-confman.commands'] == nil then return M end
     for c, i in pairs(vim.api.nvim_get_commands({builtin = false})) do
        if vim.startswith(c, 'Confman') then
            vim.api.nvim_del_user_command(c)
