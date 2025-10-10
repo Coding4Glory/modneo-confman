@@ -18,13 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 return {
     check = function()
-        local config = require'modneo-confman.config'
+        local config = require('modneo-confman.config')
         if config.options == nil then
             vim.health.error('modneo-confman is not configured properly')
             return
         end
 
-        local core = require'modneo-confman.core'
+        local core = require('modneo-confman.core')
 
         local plugin_dir = config.get_plugin_dir()
         if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then
@@ -34,21 +34,62 @@ return {
             for _, pl in pairs(cats) do
                 cat_count = cat_count + 1
                 if pl ~= nil then
-                    for _,_ in ipairs(pl) do
+                    for _, _ in ipairs(pl) do
                         plug_count = plug_count + 1
                     end
                 end
             end
-            vim.health.ok(string.format('plugin directory exists, %i categories with %i plugins', cat_count, plug_count))
+            vim.health.ok(
+                string.format(
+                    'plugin directory exists, %i categories with %i plugins',
+                    cat_count,
+                    plug_count
+                )
+            )
         else
-            vim.health.error(string.format('plugin directory [%s] does not exist', plugin_dir))
+            vim.health.error(
+                string.format(
+                    'plugin directory [%s] does not exist',
+                    plugin_dir
+                )
+            )
         end
 
-        local enabled_dir = vim.fs.joinpath(config.get_plugin_dir(), config.options.link_dir)
-        if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then
-            vim.health.ok('enabled-plugin directory exists ' .. table.maxn(vim.fn.glob(vim.fs.joinpath(enabled_dir, '*'), false, true, false)) .. ' files found')
+        if config.options.strategy == 'symlink' then
+            local enabled_dir = vim.fs.joinpath(
+                config.get_plugin_dir(),
+                config.options.link_dir
+            )
+            if (vim.uv or vim.loop).fs_stat(plugin_dir) ~= nil then
+                vim.health.ok(
+                    'enabled-plugin directory exists '
+                    .. table.maxn(
+                        vim.fn.glob(
+                            vim.fs.joinpath(enabled_dir, '*'),
+                            false,
+                            true,
+                            false
+                        )
+                    )
+                    .. ' files found'
+                )
+            else
+                vim.health.error(
+                    string.format(
+                        'enabled-plugin directory [%s] does not exist',
+                        enabled_dir
+                    )
+                )
+            end
         else
-            vim.health.error(string.format('enabled-plugin directory [%s] does not exist', enabled_dir))
+            if config.options.strategy ~= 'rename' then
+                vim.health.error(
+                    string.format(
+                        "strategy '%s' is not supported",
+                        config.options.strategy
+                    )
+                )
+            end
         end
-    end
+    end,
 }
