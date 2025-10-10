@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@field is_enabled fun(item:Modneo.Confman.ConfItem):boolean
 ---@field get_configs fun(category:string?):string[]
 ---@field find fun(category:string,name:string):string?
+---@field name fun():string
 
 ---@class Modneo.ConfmanCore
 ---@field options Modneo.ConfmanOptions
@@ -31,32 +32,6 @@ local M = {}
 
 ---@type Modneo.ConfmanOptions
 M.options = {}
-
----@deprecated Modneo.Confman.Config.get_file_pattern(string)
-M.get_file_pattern = function(name)
-    name = name or '*'
-    if name:match('.+%' .. M.options.default_filter .. '$') == nil then
-        return name .. M.options.default_filter
-    end
-    --- has already a matching suffix
-    return name
-end
-
----@deprecated Modneo.Confman.Config.get_plugin_dir()
-M.get_plugin_dir = function()
-    return vim.fs.joinpath(M.options.config_root, M.options.plugin_lib)
-end
-
----@deprecated
----@param category string the plugin category
----@param filename string must be the exact basename (with suffix)
-M.get_link_name = function(category, filename)
-    return vim.fs.joinpath(
-        M.config.get_plugin_dir(),
-        M.options.link_dir,
-        category .. '-' .. filename
-    )
-end
 
 ---gets a list with all plugin categories
 ---@return table
@@ -107,23 +82,6 @@ M.get_item = function(category, name)
     if found ~= nil then
         return single_result_to_item(found)
     end
-end
-
----Gets the enable configuration with the given category and name
----if found, otherwise nil.
----@param cat string the plugin category
----@param name string the plugin name
----@return Modneo.Confman.ConfItem?
----@deprecated
-M.get_enabled_conf = function(cat, name)
-    local search_path = vim.fs.joinpath(
-        M.config.get_plugin_dir(),
-        M.options.link_dir,
-        M.config.get_file_pattern(cat .. '-' .. name)
-    )
-    local found = vim.fn.glob(search_path, false, true, false)
-
-    return single_result_to_item(found)
 end
 
 ---lists all available plugins

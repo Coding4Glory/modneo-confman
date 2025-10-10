@@ -4,17 +4,15 @@ local readonly_settings = {
     config_root = uv.cwd(),
     plugin_lib = 'tests/fixture/ro',
 }
-local readwrite_settings = {
-    config_root = uv.cwd(),
-    plugin_lib = 'tests/fixture/rw',
-}
 local symlink_settings = {
     config_root = uv.cwd(),
     plugin_lib = 'tests/fixture/link',
+    strategy = 'symlink',
 }
 local rename_settings = {
     config_root = uv.cwd(),
     plugin_lib = 'tests/fixture/rename',
+    strategy = 'rename',
 }
 
 local function count_configs(t)
@@ -111,9 +109,10 @@ describe('symlink strategy ', function()
 end)
 
 describe('rename strategy ', function()
+    readonly_settings.strategy = 'rename'
     describe('test listing:', function()
         it('all plugins', function()
-            local sut = plugin.setup(readonly_settings)
+            local sut = plugin.setup(rename_settings)
             local all_plugins = sut.list_available()
             assert.is_table(all_plugins)
             assert.is_equal(2, count_categories(all_plugins))
@@ -121,7 +120,7 @@ describe('rename strategy ', function()
         end)
 
         it('enabled plugins', function()
-            local sut = plugin.setup(readonly_settings)
+            local sut = plugin.setup(rename_settings)
             local enabled_plugins = sut.list_enabled()
             assert.is_table(enabled_plugins)
             assert.is_equal(0, count_categories(enabled_plugins))
@@ -149,7 +148,7 @@ describe('rename strategy ', function()
         it('enables a plugin', function ()
             local on_name = vim.fs.joinpath(uv.cwd(), rename_settings.plugin_lib, 'cat_one', 'mod_two.lua')
             local sut = plugin.setup(rename_settings)
-            sut.enable('cat_one', 'mod_one')
+            sut.enable('cat_one', 'mod_two')
             assert.not_nil(uv.fs_stat(on_name))
             assert.is_nil(uv.fs_stat(on_name .. '.off'))
         end)

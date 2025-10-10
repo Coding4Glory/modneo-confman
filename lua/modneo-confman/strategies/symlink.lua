@@ -103,8 +103,11 @@ local M = {
 
         return get_files(category, enabled)
     end,
+
+    name = function() return 'symlink' end,
 }
 
 return function (S)
+    config = require('modneo-confman.config')
     S['symlink'] = M
 end

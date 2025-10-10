@@ -20,13 +20,13 @@ local config = require('modneo-confman.config')
 
 local search = {
     config.options.default_filter,
-    config.options.disabled_suffix,
+    config.options.default_filter .. config.options.disabled_suffix,
 }
 ---renames the file
 ---@param item Modneo.Confman.ConfItem the item to rename
 ---@param new_basename string the new basename
 local function rename(item, new_basename)
-    local new_path = vim.fs.joinpath(item.realpath, new_basename)
+    local new_path = vim.fs.joinpath(vim.fs.dirname(item.realpath), new_basename)
     if new_path == item.realpath then return end
     vim.uv.fs_rename(item.realpath, new_path)
 end
@@ -37,12 +37,14 @@ end
 local function get_enabled_name(item)
     local new_name = vim.fs
         .basename(item.realpath)
-        :match('(.*)' .. config.options.disabled_suffix)
+        :match('(.*)' .. config.options.disabled_suffix .. '$')
 
     if new_name == nil or new_name == '' then
-        -- appearently not disabled - return current name to prevent damage
+        -- appearently not disabled - return current name
         return vim.fs.basename(item.realpath)
     end
+
+    return new_name
 end
 
 ---@param item Modneo.Confman.ConfItem
@@ -63,11 +65,14 @@ end
 
 ---@type Modneo.Confman.Core.Strategy
 local M = {
+    ---enables the item if disabled by name, bang is ignored by this strategy
     enable_conf = function(item, _)
         local new_name = get_enabled_name(item)
         if new_name == nil then
             error(
                 'could not enable '
+                    .. item.category
+                    .. '/'
                     .. item.name
                     .. ' file might not exist anymore'
             )
@@ -76,12 +81,14 @@ local M = {
         item.enabled = true
     end,
 
+    ---disables the item if enabled by name
     disable_conf = function(item)
         local new_name = get_disabled_name(item)
         rename(item, new_name)
         item.enabled = false
     end,
 
+    ---checks if the disabled suffix is present
     is_enabled = function(item)
         return not vim.endswith(
             vim.fs.basename(item.realpath or item.abspath),
@@ -89,24 +96,34 @@ local M = {
         )
     end,
 
+    ---gets the first config file matching category and name
     find = function(category, name)
         for _, p in ipairs(search) do
-            local found = get_files(category, config.get_file_pattern(name, p))[1]
+            local found = get_files(category, config.get_file_pattern(name, p))
             if #found == 1 then return found[1] end
         end
     end,
 
+    ---retrieves configs from all categories
     get_configs = function(category)
+        if category == config.options.link_dir then return {} end
         local found = {}
         for _, p in ipairs(search) do
-            found =
-                vim.tbl_deep_extend('error', get_files(category, p), found)
+            local in_cat = get_files(category, '*' .. p)
+            for _, x in ipairs(in_cat) do
+                if not vim.tbl_contains(found, x) then
+                    table.insert(found, x)
+                end
+            end
         end
 
         return found
     end,
+
+    name = function() return 'rename' end,
 }
 
 return function (S)
+    config = require('modneo-confman.config')
     S['rename'] = M
 end
