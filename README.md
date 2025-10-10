@@ -2,7 +2,8 @@
 
 aka modneo-confman
 
-modneo-confman is a neovim plugin to enable and disable plugins for users maintaining a modular config approach.
+modneo-confman is a neovim plugin to enable and disable plugins for users
+maintaining a modular config approach.
 
 ## Features ✨
 
@@ -24,31 +25,73 @@ Setup with lazy
     opts = {
         ---The directory where the plugin categories are located, defaults to
         ---lua/plugins. The path is expected to be relative.
+        ---@type string
         plugin_lib = vim.fs.joinpath('lua', 'plugins'),
-        ---The directory where links to enabled plugins shall be stored
-        ---if not existing the directory will be created in the plugin_dir.
-        ---The same directory has to be set in lazy, will be created within
-        ---plugin_dir.
+        ---The strategy to use to distinguish between enabled and disabled
+        ---configurations. This setting defines if following options are
+        ---considered. Possible options are 'symlink' and 'rename', defaults to
+        ---'symlink' on linux and 'rename' on Windows.
+        ---@type Modneo.ConfmanStrategy
+        strategy = 'symlink',
+        ---The suffix to add to disabled files if the strategy is set to rename
+        disabled_suffix = '.off',
+        ---This setting is only considered for the *symlink* strategy.
+        ---The directory where links to enabled plugins shall be stored.
+        ---It needs to be created in the plugin_dir. The same directory has to
+        ---be set in lazy.
+        ---@type string
         link_dir = 'enabled',
         ---The directory where the user configuration is stored, defaults to
         ---`~/.config/nvim.` The default value is retrieved via `stdpath` so
         ---setting this value is usually not required and also not recommended
         ---doing so will change the *state* folder for the plugin which in
         ---this case defaults to the config directory by purpose.
+        ---@type string
         config_root = vim.fn.stdpath('config'),
-        ---the suffix part of a file glob pattern without leading asterisk
-        ---has to start with a dot (will not be added automatically) except
+        ---The suffix part of a file glob pattern without leading asterisk.
+        ---It has to start with a dot (will not be added automatically) except
         ---your system does not use dot's for file suffix separation (is there
-        ---any where neovim runs on?).
-        ---Might be set to .lua to ignore .vim files or vice versa.
+        ---any where neovim runs on?). Might be set to .lua to ignore .vim
+        ---files or vice versa.
+        ---@type string
         default_filter = '.[lv][iu][am]',
+        ---the sign used to highlight enabled plugins in the dialog window
+        ---@type string
+        enabled_sign = '*'
     },
 },
 ```
 
+The advantage of symlinks is to keep syntax highlighting and lsp enabled if
+your neovim is configured for plugin development.
+
 ## Usage 🛠
 
-At this point the plugin is meant to be used in conjunction with lazy. To make this work the link dir should be the only folder imported by lazy. Following example should give you the details if you're familiar with lazy.
+### Plugin configs 🗂
+
+Organize your plugins into categories by putting them into subfolders as shown.
+This figure this matches the default config with categories *basics*,
+*container* and *ide*:
+
+    .config/nvim/lua/plugins
+    ├── basics
+    ├── container
+    └── ide
+
+create also an enabled folder if the symlink strategy is used.
+
+    .config/nvim/lua/plugins
+    ├── ...
+    └── enabled
+
+Folders will be seen as categories, further hierarchies are currently not
+supported.
+
+### symlink strategy 🔗
+
+At this point the plugin is meant to be used in conjunction with lazy. To make
+this work the link dir should be the only folder imported by lazy. Following
+example should give you the details if you're familiar with lazy.
 
 > If not you should learn more about your configuration before continuing 😉
 
@@ -60,24 +103,24 @@ require("lazy").setup({
 })
 ```
 
-### Plugin configs 🗂
+### rename strategy 🏷
 
-Organize your plugins into categories by putting them into subfolders as shown. This figure this matches the default config with categories *basics*, *container* and *ide*:
+In the rename strategy files will be renamed between .off and not .off. This
+way you won't need an enabled folder and the plugin can be used on systems
+without symlink support. In that case all category folders must be included in
+the lazy configuration.
 
-    .config/nvim/lua/plugins
-    ├── basics
-    ├── container
-    └── ide
+```lua
+require("lazy").setup({
+    spec = {
+        { import = 'plugins/basics' },
+        { import = 'plugins/container' },
+        { import = 'plugins/ide' }
+    }
+})
+```
 
-create also an enabled folder
-
-    .config/nvim/lua/plugins
-    ├── ...
-    └── enabled
-
-Folders will be seen as categories, further hierarchies are currently not supported.
-
-### Commands ⌨
+## Commands ⌨
 
 ```vimdoc
                                                                   *Confman-UI*

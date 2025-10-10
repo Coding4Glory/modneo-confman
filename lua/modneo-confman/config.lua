@@ -28,8 +28,8 @@ local strategies = { 'symlink', 'rename' }
 ---@class Modneo.ConfmanOptions
 ---@field get_plugin_dir? fun():string will be added during setup
 local defaults = {
-    ---The directory where the plugin categories are located, defaults to lua/plugins.
-    ---The path is expected to be relative.
+    ---The directory where the plugin categories are located, defaults to
+    ---lua/plugins. The path is expected to be relative.
     ---@type string
     plugin_lib = vim.fs.joinpath('lua', 'plugins'),
     ---The strategy to use to distinguish between enabled and disabled
@@ -43,26 +43,26 @@ local defaults = {
     ---The suffix to add to disabled files if the strategy is set to rename
     disabled_suffix = '.off',
     ---This setting is only considered for the *symlink* strategy.
-    ---The directory where links to enabled plugins shall be stored if not
-    ---existing the directory will be created in the plugin_dir. The same
-    ---directory has to be set in lazy, has to be created within plugin_dir.
+    ---The directory where links to enabled plugins shall be stored.
+    ---It needs to be created in the plugin_dir. The same directory has to
+    ---be set in lazy.
     ---@type string
     link_dir = 'enabled',
     ---The directory where the user configuration is stored, defaults to
     ---`~/.config/nvim.` The default value is retrieved via `stdpath` so
-    ---setting this value is usually not required and also not recommended doing
-    ---so will change the *state* folder for the plugin which in this case defaults
-    ---to the config directory by purpose.
+    ---setting this value is usually not required and also not recommended
+    ---doing so will change the *state* folder for the plugin which in
+    ---this case defaults to the config directory by purpose.
     ---@type string
     config_root = vim.fn.stdpath('config'),
-    ---The suffix part of a file glob pattern without leading asterisk. It
-    ---has to start with a dot (will not be added automatically) except your
-    ---system does not use dot's for file suffix separation (is there any
-    ---where neovim runs on?). Might be set to .lua to ignore .vim files original
-    ---vice versa.
+    ---The suffix part of a file glob pattern without leading asterisk.
+    ---It has to start with a dot (will not be added automatically) except
+    ---your system does not use dot's for file suffix separation (is there
+    ---any where neovim runs on?). Might be set to .lua to ignore .vim
+    ---files or vice versa.
     ---@type string
     default_filter = '.[lv][iu][am]',
-    ---the sign used to highlight enabled plugins
+    ---the sign used to highlight enabled plugins in the dialog window
     ---@type string
     enabled_sign = '*'
 }
