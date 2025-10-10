@@ -18,6 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 local config = require('modneo-confman.config')
 
+local enabled_dir = vim.fs.joinpath(config.get_plugin_dir(), config.options.link_dir)
+
+if config.options.strategy == 'symlink'
+    and vim.uv.fs_stat(enabled_dir) == nil
+then
+    vim.uv.fs_mkdir(enabled_dir, tonumber('755', 8))
+end
+
 ---@param category string the plugin category
 ---@param filename string must be the exact basename (with suffix)
 local function get_link_name(category, filename)
@@ -109,5 +117,5 @@ local M = {
 
 return function (S)
     config = require('modneo-confman.config')
-    S['symlink'] = M
+    S[M.name()] = M
 end
