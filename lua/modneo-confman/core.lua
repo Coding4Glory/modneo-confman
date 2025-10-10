@@ -60,7 +60,7 @@ end
 ---gets a list with all plugins
 ---@param category string? may be used to restrict to specific category
 M.get_configs = function(category)
-    local config_files = M.strategy.get_configs(category)
+    local config_files = M.strategy().get_configs(category)
     return M.item_factory.convert(config_files)
 end
 
@@ -78,7 +78,7 @@ end
 ---the name with the suffix appended
 ---@return Modneo.Confman.ConfItem?
 M.get_item = function(category, name)
-    local found = M.strategy.find(category, name)
+    local found = M.strategy().find(category, name)
     if found ~= nil then
         return single_result_to_item(found)
     end
@@ -102,7 +102,7 @@ end
 ---@param force boolean
 ---@deprecated Modneo.Confman.ConfItem.enable(boolean)
 M.enable_conf = function(item, force)
-    M.strategy.enable_conf(item, force)
+    M.strategy().enable_conf(item, force)
 end
 
 ---enables the given configuration file or a whole category
@@ -146,7 +146,7 @@ end
 ---@param item Modneo.Confman.ConfItem
 ---@deprecated Modneo.Confman.ConfItem.disable()
 M.disable_conf = function(item)
-    M.strategy.disable_conf(item)
+    M.strategy().disable_conf(item)
 end
 
 ---disables the plugin identified by category and name
@@ -174,7 +174,7 @@ end
 ---@type function
 ---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
-    local found = M.strategy.find(cat, name)
+    local found = M.strategy().find(cat, name)
     if found ~= nil then
         return M.item_factory.new(found).enabled
     end
@@ -188,7 +188,10 @@ M.init = function()
     M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
     ---@type Modneo.Confman.Core.Strategy
-    M.strategy = require('modneo-confman.strategies')[M.options.strategy]
+    M.strategies = require('modneo-confman.strategies')
+    M.strategy = function()
+        return M.strategies[M.options.strategy]
+    end
     M.uv = (vim.uv or vim.loop)
     return M
 end
