@@ -49,10 +49,6 @@ M.setup = function(opts)
     local options = require('modneo-confman.config').setup(opts)
     add_sign(options.enabled_sign)
     local core = require('modneo-confman.core').init()
-    if package.loaded['modneo-confman.commands'] == nil then
-        require('modneo-confman.commands').setup(core)
-        return core
-    end
     require('modneo-confman.commands').remove().setup(core)
     return core
 end
