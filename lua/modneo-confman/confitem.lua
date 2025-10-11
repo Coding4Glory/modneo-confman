@@ -49,15 +49,18 @@ F.new = function(path, strategy)
     M.init = function()
         M.abspath = path
         M.line_number = 0
-        M.refresh()
+        M.refresh(path)
         return M
     end
 
-    --- refreshes the state of the confItem instance
-    M.refresh = function()
+    ---refreshes the state of the confItem instance accordingly to given path
+    ---@param path string the new real path
+    M.refresh = function(path)
+        M.abspath = path
         M.realpath = (vim.uv or vim.loop).fs_realpath(path)
         M.category = vim.fs.basename(vim.fs.dirname(M.realpath))
-        M.name = vim.fs.basename(M.realpath) or M.abspath
+        local simple_name = vim.fs.basename(M.realpath) or vim.fs.basename(M.abspath)
+        M.name = simple_name:match('(.*)' .. F.options.disabled_suffix .. '$') or simple_name
         M.enabled = strategy.is_enabled(M)
     end
 

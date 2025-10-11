@@ -32,6 +32,7 @@ local function rename(item, new_basename)
         return
     end
     vim.uv.fs_rename(item.realpath, new_path)
+    item.refresh(new_path)
 end
 
 ---strips the suffix if existing
