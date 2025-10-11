@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
-local M = {}
-
 return require('modneo-confman.strategies.rename_base')
-    .derive(vim.fn.stdpath'config', 'autoload', M)
+    .derive(vim.fn.stdpath'config', 'autoload', {})
 
