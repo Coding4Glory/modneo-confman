@@ -35,7 +35,7 @@ local M = {
 ---@param opts Modneo.Confman.Options
 M.setup = function(opts)
     vim.fn.sign_define(M.signs.config, { text = opts.signs.enabled, texthl = 'Directory' })
-    vim.fn.sign_define(M.signs.category, { text = opts.signs.category, texthl = 'Include' })
+    vim.fn.sign_define(M.signs.category, { text = opts.signs.category, texthl = 'Special' })
 end
 
 ---Removes the signs from nvim
