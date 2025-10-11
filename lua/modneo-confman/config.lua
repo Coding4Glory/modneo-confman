@@ -36,6 +36,7 @@ local defaults = {
     ---configurations. This setting defines if following options are
     ---considered. Possible options are 'symlink' and 'rename', defaults to
     ---'symlink' on linux and 'rename' on windows.
+    ---Autoload directories like ftplugin will always use rename strategy
     ---@type Modneo.ConfmanStrategy
     strategy = vim.startswith((vim.uv or vim.loop).os_uname().sysname, 'Windows')
              and 'rename'

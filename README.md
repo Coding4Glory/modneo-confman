@@ -31,6 +31,7 @@ Setup with lazy
         ---configurations. This setting defines if following options are
         ---considered. Possible options are 'symlink' and 'rename', defaults to
         ---'symlink' on linux and 'rename' on Windows.
+        ---Autoload directories like ftplugin will allways use rename strategy
         ---@type Modneo.ConfmanStrategy
         strategy = 'symlink',
         ---The suffix to add to disabled files if the strategy is set to rename
