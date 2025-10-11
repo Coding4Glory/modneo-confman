@@ -58,7 +58,7 @@ M.set_buffer_content = function(plugins, buf)
 end
 
 ---refereshes the status sign for the given item
----@param item ConfmanConfItem
+---@param item Modneo.Confman.ConfItem
 ---@param buf integer
 M.refresh_sign = function(item, buf)
     if item.enabled then
@@ -159,7 +159,7 @@ M.show_plugins = function(plugins)
             local selected = get_selected(plugins, win)
             if selected ~= nil then
                 if selected.enabled then return end
-                M.core.enable_conf(selected)
+                selected.enable()
                 M.refresh_sign(selected, buf)
             end
         end,
@@ -173,7 +173,7 @@ M.show_plugins = function(plugins)
         function()
             local selected = get_selected(plugins, win)
             if selected ~= nil then
-                M.core.enable_conf(selected, true)
+                selected.enable(true)
                 M.refresh_sign(selected, buf)
             end
         end,
@@ -188,7 +188,7 @@ M.show_plugins = function(plugins)
             local selected = get_selected(plugins)
             if selected ~= nil then
                 if not selected.enabled then return end
-                M.core.disable_conf(selected)
+                selected.disable()
                 M.refresh_sign(selected, buf)
             end
         end,
