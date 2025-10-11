@@ -28,9 +28,11 @@ F.setup = function()
 end
 
 ---creates a new ConfmanConfItem
----@see Modneo.Confman.ConfItem
+---@param path string the absolute path to the found config file or symlink
+---@param strategy Modneo.Confman.Core.Strategy? allows overriding the configured strategy
 ---@return Modneo.Confman.ConfItem
-F.new = function(path)
+---@see Modneo.Confman.ConfItem
+F.new = function(path, strategy)
     ---@class Modneo.Confman.ConfItem
     ---@field category string? the plugin category
     ---@field name string the name of the plugin config file
@@ -40,27 +42,32 @@ F.new = function(path)
     ---@field realpath string? the actual file path, resolved if symlink
     local M = {}
 
+    strategy = strategy or F.strategy
+
     ---initializes the instance
     ---@return Modneo.Confman.ConfItem
     M.init = function()
         M.abspath = path
         M.line_number = 0
-        M.refresh()
+        M.refresh(path)
         return M
     end
 
-    --- refreshes the state of the confItem instance
-    M.refresh = function()
+    ---refreshes the state of the confItem instance accordingly to given path
+    ---@param path string the new real path
+    M.refresh = function(path)
+        M.abspath = path
         M.realpath = (vim.uv or vim.loop).fs_realpath(path)
         M.category = vim.fs.basename(vim.fs.dirname(M.realpath))
-        M.name = vim.fs.basename(M.realpath) or M.abspath
-        M.enabled = F.strategy.is_enabled(M)
+        local simple_name = vim.fs.basename(M.realpath) or vim.fs.basename(M.abspath)
+        M.name = simple_name:match('(.*)' .. F.options.disabled_suffix .. '$') or simple_name
+        M.enabled = strategy.is_enabled(M)
     end
 
     ---enables the configuration file described by this item
     ---@param force boolean?
     M.enable = function(force)
-        local success, err = pcall(F.strategy.enable_conf, M, force)
+        local success, err = pcall(strategy.enable_conf, M, force)
         if not success then
             print(err)
         end
@@ -69,7 +76,7 @@ F.new = function(path)
 
     --- disables the configuration file described by this item
     M.disable = function()
-        local success, err = pcall(F.strategy.disable_conf, M)
+        local success, err = pcall(strategy.disable_conf, M)
         if not success then
             print(err)
         end
@@ -81,8 +88,9 @@ end
 
 ---creates a table of ConfmanConfItem instances based on the passed table
 ---@param plugins table
+---@param strategy Modneo.Confman.Core.Strategy?
 ---@return table<string,Modneo.Confman.ConfItem> a categorized table with ConfmanConfItem lists as values
-F.convert = function(plugins)
+F.convert = function(plugins, strategy)
     local result = {}
 
     if plugins == nil then
@@ -92,7 +100,7 @@ F.convert = function(plugins)
     -- simple table without categories
     if #plugins > 0 then
         for _, file in ipairs(plugins) do
-            local item = F.new(file)
+            local item = F.new(file, strategy)
             if result[item.category] == nil then
                 result[item.category] = {}
             end
@@ -107,7 +115,7 @@ F.convert = function(plugins)
         local converted = {}
         if pl ~= nil and type(pl) == 'table' then
             for _, file in ipairs(pl) do
-                local item = F.new(file)
+                local item = F.new(file, strategy)
                 table.insert(converted, item)
             end
         end

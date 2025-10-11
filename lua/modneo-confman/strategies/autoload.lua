@@ -1,5 +1,5 @@
 --[[
-Part of confman.nvim
+confman.nvim
 Copyright (C) 2025  Markus Hergenröder
 
 This program is free software: you can redistribute it and/or modify
@@ -13,14 +13,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
-local config = require('modneo-confman.config')
+return require('modneo-confman.strategies.rename_base')
+    .derive(vim.fn.stdpath'config', 'autoload', {})
 
-local M = require('modneo-confman.strategies.rename_base')
-    .derive(config.get_plugin_dir(), 'rename', {})
-
-return function (S)
-    S[M.name()] = M
-end

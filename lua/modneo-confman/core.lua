@@ -16,6 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
+local autolaod = {
+    'plugin',
+    'ftplugin',
+    'ftdetect',
+}
+
 ---@class Modneo.Confman.Core.Strategy
 ---@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean?)
 ---@field disable_conf fun(item:Modneo.Confman.ConfItem)
@@ -60,8 +66,18 @@ end
 ---gets a list with all plugins
 ---@param category string? may be used to restrict to specific category
 M.get_configs = function(category)
-    local config_files = M.strategy.get_configs(category)
+    local config_files = M.strategy().get_configs(category)
     return M.item_factory.convert(config_files)
+end
+
+M.get_autoloaded = function()
+    local helper = require('modneo-confman.helper')
+    local result = {}
+    for _, dir in ipairs(autolaod) do
+        local found = M.autoload.get_configs(dir)
+        result = helper.tbl_merge(result, found)
+    end
+    return M.item_factory.convert(result, M.autoload)
 end
 
 local function single_result_to_item(found)
@@ -78,7 +94,7 @@ end
 ---the name with the suffix appended
 ---@return Modneo.Confman.ConfItem?
 M.get_item = function(category, name)
-    local found = M.strategy.find(category, name)
+    local found = M.strategy().find(category, name)
     if found ~= nil then
         return single_result_to_item(found)
     end
@@ -102,7 +118,7 @@ end
 ---@param force boolean
 ---@deprecated Modneo.Confman.ConfItem.enable(boolean)
 M.enable_conf = function(item, force)
-    M.strategy.enable_conf(item, force)
+    M.strategy().enable_conf(item, force)
 end
 
 ---enables the given configuration file or a whole category
@@ -146,7 +162,7 @@ end
 ---@param item Modneo.Confman.ConfItem
 ---@deprecated Modneo.Confman.ConfItem.disable()
 M.disable_conf = function(item)
-    M.strategy.disable_conf(item)
+    M.strategy().disable_conf(item)
 end
 
 ---disables the plugin identified by category and name
@@ -174,7 +190,7 @@ end
 ---@type function
 ---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
-    local found = M.strategy.find(cat, name)
+    local found = M.strategy().find(cat, name)
     if found ~= nil then
         return M.item_factory.new(found).enabled
     end
@@ -187,8 +203,11 @@ M.init = function()
     M.config = require('modneo-confman.config')
     M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
-    ---@type Modneo.Confman.Core.Strategy
-    M.strategy = require('modneo-confman.strategies')[M.options.strategy]
+    M.strategies = require('modneo-confman.strategies')
+    M.strategy = function()
+        return M.strategies[M.options.strategy]
+    end
+    M.autoload = require('modneo-confman.strategies.autoload')
     M.uv = (vim.uv or vim.loop)
     return M
 end
