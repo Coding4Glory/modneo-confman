@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@type function
 ---gets the number of columns in the longest line
 ---@param buf integer buffer number
 ---@return integer the column count taken from the longest line
@@ -35,7 +34,7 @@ local function side_length(min, max, content)
     return content
 end
 
----@class FloatSize
+---@class Modneo.Confman.UI.FloatSize
 ---@field ui_width integer
 ---@field ui_height integer
 ---@field y_border integer minimum space above and below the window
@@ -48,7 +47,6 @@ local M = {
 }
 
 ---gets the hight for the floating window
----@type function
 ---@param min integer|nil minimum height
 ---@return integer
 M.height = function(min)
@@ -57,7 +55,6 @@ M.height = function(min)
 end
 
 ---gets the hight for the floating window
----@type function
 ---@param min integer|nil
 ---@return integer
 M.width = function(min)
@@ -66,21 +63,18 @@ M.width = function(min)
 end
 
 ---gets the start row for the floating window
----@type function
 ---@return integer
 M.row = function()
     return (M.ui_height/2) - (M.height()/2)
 end
 
 ---gets the start col for the floating window
----@type function
 ---@return integer
 M.col = function()
     return (M.ui_width/2) - (M.width()/2)
 end
 
 ---function to call when the UI get's resized, e. g. in a terminal window
----@type function
 M.on_resize = function()
     M.ui_width = vim.o.columns
     M.ui_height = vim.o.lines
@@ -101,7 +95,7 @@ M.to_options = function(border)
 end
 
 ---initializes the table for a new buffer
----@return FloatSize
+---@return Modneo.Confman.UI.FloatSize
 M.new = function(buf)
     local line_count = vim.api.nvim_buf_line_count(buf)
     M.ui_width = vim.o.columns

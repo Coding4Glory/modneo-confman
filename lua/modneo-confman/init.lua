@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@class Modneo.ConfmanLoader
 local M = {}
 
-local sign_name = require('modneo-confman.ui.render').sign.name
+local sign_name = require('modneo-confman.ui.render').sign.config
 
 local function remove_sign()
     local found = vim.fn.sign_getdefined(sign_name)['name']

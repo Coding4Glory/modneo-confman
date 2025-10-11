@@ -34,7 +34,7 @@ local function get_selected(plugins, win)
     return get_by_line(plugins, row)
 end
 
----@class Modneo.ConfmanDialogs
+---@class Modneo.Confman.UI.Dialogs
 local M = {}
 
 ---sets the plugins as new content of the given buffer
@@ -65,7 +65,7 @@ M.refresh_sign = function(item, buf)
         vim.fn.sign_place(
             item.line_number,
             M.render.sign.group,
-            M.render.sign.name,
+            M.render.sign.config,
             buf,
             { lnum = item.line_number }
         )
@@ -79,9 +79,8 @@ end
 ---@private
 M.dialog_name = 'ConfmanDialog'
 
----gets a table
----@type function
----@return FloatSize
+---gets a floatsize instance calculated based on the given buffer content
+---@return Modneo.Confman.UI.FloatSize
 M.get_window_dimensions = function(buf)
     return require('modneo-confman.ui.floatsize').new(buf)
 end
@@ -96,12 +95,13 @@ M.get_buffer = function()
     return bufid
 end
 
+---closes the dialog and deletes the buffer forcefully
 M.close_dialog = function(win, buf)
     vim.api.nvim_win_close(win, true)
     vim.api.nvim_buf_delete(buf, { force = true })
 end
 
----@type table
+---@type char[]
 ---@private
 M.border = { '┌', '─', '┐', '│', '┘', '─', '└', '│' }
 
@@ -147,6 +147,16 @@ M.show_plugins = function(plugins)
     vim.keymap.set(
         'n',
         'q',
+        function() M.close_dialog(win, buf) end,
+        {
+            desc = 'b' .. buf .. 'Confman: close',
+            noremap = true,
+            buffer = buf,
+        }
+    )
+    vim.keymap.set(
+        'n',
+        '<Esc><Esc>',
         function() M.close_dialog(win, buf) end,
         {
             desc = 'b' .. buf .. 'Confman: close',
