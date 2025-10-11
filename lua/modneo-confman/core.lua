@@ -31,12 +31,12 @@ local autolaod = {
 ---@field name fun():string
 
 ---@class Modneo.ConfmanCore
----@field options Modneo.ConfmanOptions
+---@field options Modneo.Confman.Options
 ---@field item_factory Modneo.ConfmanConfItemFactory
 ---@field uv uv
 local M = {}
 
----@type Modneo.ConfmanOptions
+---@type Modneo.Confman.Options
 M.options = {}
 
 ---gets a list with all plugin categories

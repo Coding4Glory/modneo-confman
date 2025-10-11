@@ -67,7 +67,7 @@ local function get_files(basedir, folder, pattern)
     return vim.fn.glob(search_path, false, true, true)
 end
 
----@class Modneo.Confman.Strategy.RenameBase
+---@class Modneo.Confman.Strategies.RenameBase
 local M = {}
 
 ---enables the item if disabled by name, bang is ignored by this strategy

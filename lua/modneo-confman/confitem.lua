@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
 ---@class Modneo.ConfmanConfItemFactory
----@field options Modneo.ConfmanOptions
+---@field options Modneo.Confman.Options
 ---@field strategy Modneo.Confman.Core.Strategy
 local F = {}
 

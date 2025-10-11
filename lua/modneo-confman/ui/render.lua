@@ -45,11 +45,14 @@ local function sorted_categories(list)
     return categories
 end
 
+---Former field do collect different signs
 ---@class Modneo.ConfmanUiEnabledSign
+---@deprecated
+---@see Modneo.Confman.UI.Signs
 M.sign = {
     ---the sign group used by the plugin
     ---@type string
-    group = 'Confman',
+    group = 'ConfmanSigns',
     ---the sign name used by the plugin for enabled configs
     ---@type string
     config = 'ConfmanEnabled',
@@ -60,7 +63,7 @@ M.sign = {
 
 ---initialzes the renderer with the configuration
 M.init = function()
-    M.options = require'modneo-confman.config'.options
+    M.options = require('modneo-confman.config').options
     return M
 end
 
@@ -76,7 +79,6 @@ M.print_plugin_files = function(plugins)
             else
                 vim.print(format_item(p))
             end
-
         end
     end
 end
@@ -86,22 +88,47 @@ end
 ---@param buf integer buffer to write to
 M.to_buf = function(plugins, buf)
     if vim.api.nvim_buf_line_count(buf) > 1 then
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {''})
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { '' })
         vim.fn.sign_unplace(M.sign.group, { buf = buf })
     end
 
-    vim.api.nvim_buf_set_lines(buf, -2, -1, false, { 'Usage: [e]nable | [d]isable | [q]uit', '' })
+    vim.api.nvim_buf_set_lines(
+        buf,
+        -2,
+        -1,
+        false,
+        { 'Usage: [e]nable | [d]isable | [q]uit', '' }
+    )
     local line_counter = vim.api.nvim_buf_line_count(buf)
     local categories = sorted_categories(plugins)
 
     for _, c in ipairs(categories) do
         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
+        vim.fn.sign_place(
+            line_counter,
+            M.sign.group,
+            M.sign.category,
+            buf,
+            { lnum = line_counter }
+        )
         line_counter = line_counter + 1
         for _, p in ipairs(plugins[c]) do
-            vim.api.nvim_buf_set_lines(buf, -2, -1, false, { '- ' .. p.name, '' })
+            vim.api.nvim_buf_set_lines(
+                buf,
+                -2,
+                -1,
+                false,
+                { '- ' .. p.name, '' }
+            )
             p.line_number = line_counter
             if p.enabled then
-                vim.fn.sign_place(line_counter, M.sign.group, M.sign.config, buf, { lnum = line_counter })
+                vim.fn.sign_place(
+                    line_counter,
+                    M.sign.group,
+                    M.sign.config,
+                    buf,
+                    { lnum = line_counter }
+                )
             end
             line_counter = line_counter + 1
         end
