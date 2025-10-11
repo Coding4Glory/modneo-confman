@@ -34,7 +34,7 @@ local M = {
 ---Registeres the signs according to given opts
 ---@param opts Modneo.Confman.Options
 M.setup = function(opts)
-    vim.fn.sign_define(M.signs.config, { text = opts.signs.enabled, texthl = 'Directory' })
+    vim.fn.sign_define(M.signs.config, { text = opts.signs.config, texthl = 'Directory' })
     vim.fn.sign_define(M.signs.category, { text = opts.signs.category, texthl = 'Special' })
 end
 

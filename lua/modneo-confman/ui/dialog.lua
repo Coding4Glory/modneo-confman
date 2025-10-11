@@ -61,17 +61,7 @@ end
 ---@param item Modneo.Confman.ConfItem
 ---@param buf integer
 M.refresh_sign = function(item, buf)
-    if item.enabled then
-        vim.fn.sign_place(
-            item.line_number,
-            M.render.sign.group,
-            M.render.sign.config,
-            buf,
-            { lnum = item.line_number }
-        )
-        return
-    end
-    vim.fn.sign_unplace(M.render.sign.group, { buffer = buf, id = item.line_number })
+    require'modneo-confman.ui.signs'.refresh(item, buf)
 end
 
 ---gets the name of the dialog buffer

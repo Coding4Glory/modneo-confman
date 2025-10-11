@@ -71,9 +71,10 @@ local defaults = {
     ---@class Modneo.Confman.Options.Signs
     signs = {
         ---the character used to highlight enabled configs
-        enabled = '*',
+        ---in *plugin_lib*
+        config = '+',
         ---the character used to highlight categories
-        category = '+',
+        category = '*',
     }
 }
 
