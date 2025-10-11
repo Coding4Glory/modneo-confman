@@ -57,7 +57,8 @@ M.setup = function(core)
     vim.api.nvim_create_user_command('ConfmanDisable', core.disable_command,
         { desc = 'disable plugin', bang = true, nargs = 1, complete = complete_helper })
     vim.api.nvim_create_user_command('Confman', function()
-        require'modneo-confman.ui.dialog'.show_plugins(core.get_configs())
+        local all_configs = vim.tbl_deep_extend('keep', core.get_configs(), core.get_autoloaded())
+        require'modneo-confman.ui.dialog'.show_plugins(all_configs)
     end, { desc = 'show Confman UI' })
 end
 

@@ -16,6 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
+local autolaod = {
+    'plugin',
+    'ftdetect',
+}
+
 ---@class Modneo.Confman.Core.Strategy
 ---@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean?)
 ---@field disable_conf fun(item:Modneo.Confman.ConfItem)
@@ -62,6 +67,16 @@ end
 M.get_configs = function(category)
     local config_files = M.strategy().get_configs(category)
     return M.item_factory.convert(config_files)
+end
+
+M.get_autoloaded = function()
+    local helper = require('modneo-confman.helper')
+    local result = {}
+    for _, dir in ipairs(autolaod) do
+        local found = M.autoload.get_configs(dir)
+        result = helper.tbl_merge(result, found)
+    end
+    return M.item_factory.convert(result, M.autoload)
 end
 
 local function single_result_to_item(found)
@@ -187,11 +202,11 @@ M.init = function()
     M.config = require('modneo-confman.config')
     M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
-    ---@type Modneo.Confman.Core.Strategy
     M.strategies = require('modneo-confman.strategies')
     M.strategy = function()
         return M.strategies[M.options.strategy]
     end
+    M.autoload = require('modneo-confman.strategies.autoload')
     M.uv = (vim.uv or vim.loop)
     return M
 end
