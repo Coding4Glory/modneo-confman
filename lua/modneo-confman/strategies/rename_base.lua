@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 local config = require('modneo-confman.config')
 
+local helper = require('modneo-confman.helper')
+
 local search = {
     config.options.default_filter,
     config.options.default_filter .. config.options.disabled_suffix,
@@ -128,11 +130,7 @@ M.get_configs = function(category)
     local found = {}
     for _, p in ipairs(search) do
         local in_cat = get_files(M.basedir, category, '*' .. p)
-        for _, x in ipairs(in_cat) do
-            if not vim.tbl_contains(found, x) then
-                table.insert(found, x)
-            end
-        end
+        found = helper.tbl_merge(found, in_cat)
     end
 
     return found

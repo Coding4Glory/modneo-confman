@@ -21,26 +21,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 local M = {
     group = 'ConfmanSigns',
     ---@class Modneo.Confman.UI.Signs.Kind
-    signs = {
+    names = {
         ---the sign name used by the plugin for enabled configs
         ---@type string
         config = 'ConfmanEnabled',
         ---the sign name used by the plugin for categories
         ---@type string
         category = 'ConfmanCategory',
+        ---the sign used for for autoexec folders
+        ---@type string
+        autoload = 'ConfmanAutoload',
     },
 }
 
 ---Registeres the signs according to given opts
 ---@param opts Modneo.Confman.Options
 M.setup = function(opts)
-    vim.fn.sign_define(M.signs.config, { text = opts.signs.config, texthl = 'Directory' })
-    vim.fn.sign_define(M.signs.category, { text = opts.signs.category, texthl = 'Special' })
+    vim.fn.sign_define(M.names.config, { text = opts.signs.config, texthl = 'SignColumn', linehl = 'Normal' })
+    vim.fn.sign_define(M.names.category, { text = opts.signs.category, texthl = 'Directory', linehl = 'Directory' })
+    vim.fn.sign_define(M.names.autoload, { text = opts.signs.autoload, texthl = 'Question', linehl = 'Question' })
 end
 
 ---Removes the signs from nvim
 M.unload = function()
-    for _, s in ipairs({ M.signs.config, M.signs.category }) do
+    for _, s in ipairs({ M.names.config, M.names.category }) do
         local found = vim.fn.sign_getdefined(s)['name']
         if found ~= nil then
             vim.fn.sign_undefine(found)
@@ -67,7 +71,7 @@ M.refresh = function(item, buf)
         vim.fn.sign_place(
             item.line_number,
             M.group,
-            M.signs.config,
+            M.names.config,
             buf,
             { lnum = item.line_number }
         )

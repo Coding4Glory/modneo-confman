@@ -16,12 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local autolaod = {
-    'plugin',
-    'ftplugin',
-    'ftdetect',
-}
-
 ---@class Modneo.Confman.Core.Strategy
 ---@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean?)
 ---@field disable_conf fun(item:Modneo.Confman.ConfItem)
@@ -73,7 +67,7 @@ end
 M.get_autoloaded = function()
     local helper = require('modneo-confman.helper')
     local result = {}
-    for _, dir in ipairs(autolaod) do
+    for dir in M.config.autoexec_iter() do
         local found = M.autoload.get_configs(dir)
         result = helper.tbl_merge(result, found)
     end

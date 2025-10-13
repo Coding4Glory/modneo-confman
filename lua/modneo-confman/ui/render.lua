@@ -45,21 +45,7 @@ local function sorted_categories(list)
     return categories
 end
 
----Former field do collect different signs
----@class Modneo.ConfmanUiEnabledSign
----@deprecated
----@see Modneo.Confman.UI.Signs
-M.sign = {
-    ---the sign group used by the plugin
-    ---@type string
-    group = 'ConfmanSigns',
-    ---the sign name used by the plugin for enabled configs
-    ---@type string
-    config = 'ConfmanEnabled',
-    ---the sign name used by the plugin for categories
-    ---@type string
-    category = 'ConfmanCategory',
-}
+local signs = require'modneo-confman.ui.signs'
 
 ---initialzes the renderer with the configuration
 M.init = function()
@@ -67,7 +53,7 @@ M.init = function()
     return M
 end
 
----prints the given plugins
+---prints the given plugins.
 ---@param plugins table a table of th form { 'cat' = { 'mod', ... }, ... }
 M.print_plugin_files = function(plugins)
     local categories = sorted_categories(plugins)
@@ -89,7 +75,7 @@ end
 M.to_buf = function(plugins, buf)
     if vim.api.nvim_buf_line_count(buf) > 1 then
         vim.api.nvim_buf_set_lines(buf, 0, -1, false, { '' })
-        vim.fn.sign_unplace(M.sign.group, { buf = buf })
+        vim.fn.sign_unplace(signs.group, { buf = buf })
     end
 
     vim.api.nvim_buf_set_lines(
@@ -101,13 +87,14 @@ M.to_buf = function(plugins, buf)
     )
     local line_counter = vim.api.nvim_buf_line_count(buf)
     local categories = sorted_categories(plugins)
+    local is_autoload = require('modneo-confman.config').is_autoload
 
     for _, c in ipairs(categories) do
         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
         vim.fn.sign_place(
             line_counter,
-            M.sign.group,
-            M.sign.category,
+            signs.group,
+            is_autoload(c) and signs.names.autoload or signs.names.category,
             buf,
             { lnum = line_counter }
         )
@@ -124,8 +111,8 @@ M.to_buf = function(plugins, buf)
             if p.enabled then
                 vim.fn.sign_place(
                     line_counter,
-                    M.sign.group,
-                    M.sign.config,
+                    signs.group,
+                    signs.names.config,
                     buf,
                     { lnum = line_counter }
                 )

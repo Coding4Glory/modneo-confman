@@ -73,8 +73,10 @@ local defaults = {
         ---the character used to highlight enabled configs
         ---in *plugin_lib*
         config = '+',
-        ---the character used to highlight categories
+        ---the character used to mark categories
         category = '*',
+        ---the character used to mark autoexec folders
+        autoload = '*',
     }
 }
 
@@ -114,5 +116,35 @@ M.get_file_pattern = function(name, filter)
     return name
 end
 
+local autoload = {
+    'plugin',
+    'ftplugin',
+    'ftdetect',
+}
+
+---gets an iterator only returning the folders no indizes
+---*Example:*
+---```
+---local config = requrie('modneo-confman.config')
+---for folder in config.autoexec_iter() do
+---   --...
+---done
+---```
+---@return Iterator
+M.autoexec_iter = function()
+    local i = 0
+    local j = #autoload
+
+    return function()
+        i = i + 1
+        if i <= j then return autoload[i] end
+    end
+end
+
+---gets a value indicating if the given folder
+---is an autoexec folder
+M.is_autoload = function(folder)
+    return vim.tbl_contains(autoload, folder)
+end
 
 return M
