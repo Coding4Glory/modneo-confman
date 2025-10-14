@@ -115,6 +115,10 @@ local M = {
         return get_files(category, enabled)
     end,
 
+    get_enabled = function()
+        return get_files(config.options.link_dir, {})
+    end,
+
     name = function() return 'symlink' end,
 }
 

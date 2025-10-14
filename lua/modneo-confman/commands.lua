@@ -35,7 +35,7 @@ M.setup = function(core)
         end
         -- ConfmanDisabled
         local enabled = {}
-        for _, p in core.list_enabled()[core.options.link_dir] do
+        for _, p in core.list_enabled() do
             table.insert(enabled, string.format("%s/%p", p.category,  p.name))
         end
         return enabled
@@ -46,7 +46,7 @@ M.setup = function(core)
     end, { desc = 'list all plugins' })
     vim.api.nvim_create_user_command('ConfmanInfo', function()
         local enabled = core.list_enabled()
-        if #enabled == 0 then
+        if vim.tbl_isempty(enabled) == 0 then
             vim.notify('no enabled plugins found', vim.log.levels.INFO)
             return
         end

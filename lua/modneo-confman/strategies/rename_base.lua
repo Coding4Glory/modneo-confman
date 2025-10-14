@@ -136,6 +136,13 @@ M.get_configs = function(category)
     return found
 end
 
+
+---retrieves a list of files without the disabled suffix
+---@return string[]
+M.get_enabled = function()
+    return get_files(M.basedir, nil, config.get_file_pattern())
+end
+
 ---creates the derived class
 ---@param dir string directory to start from
 ---@param name string the name of the derivative

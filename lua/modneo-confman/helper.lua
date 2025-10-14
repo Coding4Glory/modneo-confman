@@ -16,6 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
+---returns the larger table first
+---@param first string[]
+---@param second string[]
+---@return string[]
+---@return string[]
 local function by_size(first, second)
     if #first > #second then
         return first, second
@@ -23,6 +28,10 @@ local function by_size(first, second)
     return second, first
 end
 
+---merges to tables
+---@param first string[]
+---@param second string[]
+---@return string[]
 local function merge_optimized(first, second)
     local larger, smaller = by_size(first, second)
     local result = vim.tbl_deep_extend('force', {}, larger)
@@ -38,6 +47,10 @@ end
 ---@class Modneo.Confman.Helper
 local M = {}
 
+---merges the given lists into a new one
+---@param first string[]
+---@param second string[]
+---@return string[]
 M.tbl_merge = function(first, second)
     return merge_optimized(first, second)
 end

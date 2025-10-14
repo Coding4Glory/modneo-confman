@@ -16,11 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
+local helper = require('modneo-confman.helper')
+
 ---@class Modneo.Confman.Core.Strategy
 ---@field enable_conf fun(item:Modneo.Confman.ConfItem,force:boolean?)
 ---@field disable_conf fun(item:Modneo.Confman.ConfItem)
 ---@field is_enabled fun(item:Modneo.Confman.ConfItem):boolean
 ---@field get_configs fun(category:string?):string[]
+---@field get_enabled fun():string[]
 ---@field find fun(category:string,name:string):string?
 ---@field name fun():string
 
@@ -65,7 +68,6 @@ M.get_configs = function(category)
 end
 
 M.get_autoloaded = function()
-    local helper = require('modneo-confman.helper')
     local result = {}
     for dir in M.config.autoexec_iter() do
         local found = M.autoload.get_configs(dir)
@@ -95,15 +97,25 @@ M.get_item = function(category, name)
 end
 
 ---lists all available plugins
----@type function
+---@return table<string,Modneo.Confman.ConfItem>
 M.list_available = function()
-    return M.get_configs()
+    local categorized = M.strategy().get_configs()
+    local autoexec = M.autoload.get_configs()
+    return vim.tbl_deep_extend('error',
+        M.item_factory.convert(categorized),
+        M.item_factory.convert(autoexec, M.autoload)
+    )
 end
 
 ---lists the enabled plugins
----@type function
+---@return table<string,Modneo.Confman.ConfItem>
 M.list_enabled = function()
-    return M.get_configs(M.options.link_dir)
+    local categorized = M.strategy().get_enabled()
+    local autoexec = M.autoload.get_enabled()
+    return vim.tbl_deep_extend('error',
+        M.item_factory.convert(categorized),
+        M.item_factory.convert(autoexec, M.autoload)
+    )
 end
 
 ---enables the given config item
