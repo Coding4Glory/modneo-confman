@@ -85,7 +85,7 @@ M.options = defaults
 
 ---initializes the configuration
 ---will accumulate changes if called multiple times
----@param args Modneo.Confman.Options
+---@param args Modneo.Confman.Options?
 M.setup = function(args)
     M.options = vim.tbl_deep_extend('force', M.options, args or {})
     M.options.get_plugin_dir = function()
