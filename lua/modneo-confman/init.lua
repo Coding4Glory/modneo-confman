@@ -19,44 +19,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@class Modneo.ConfmanLoader
 local M = {}
 
-local sign_name = require('modneo-confman.ui.render').sign.name
-
-local function remove_sign()
-    local found = vim.fn.sign_getdefined(sign_name)['name']
-    if found ~= nil then
-        vim.fn.sign_undefine(found)
-    end
-end
-
----@param sign string
-local function add_sign(sign)
-    remove_sign()
-    vim.fn.sign_define(sign_name, { text = sign, texthl = 'Bold' })
-end
-
----initializes the plugin with default options
-M.init = function()
-    local options = require('modneo-confman.config').init()
-    add_sign(options.enabled_sign)
-    local core = require('modneo-confman.core').init()
-    require('modneo-confman.commands').setup(core)
-end
+local signs = require('modneo-confman.ui.signs')
 
 ---performs plugin setup with given options
----@param opts Modneo.ConfmanOptions? custom settings
+---@param opts Modneo.Confman.Options? custom settings
 ---@return Modneo.ConfmanCore
 M.setup = function(opts)
     local options = require('modneo-confman.config').setup(opts)
-    add_sign(options.enabled_sign)
+    signs.setup(options)
     local core = require('modneo-confman.core').init()
     require('modneo-confman.commands').remove().setup(core)
     return core
 end
 
+---initializes the plugin with default options
+M.init = function()
+    M.setup({})
+end
 ---removes the plugin as far as possible
 M.remove = function()
     require('modneo-confman.commands').remove()
-    remove_sign()
+    signs.unload()
     local to_remove = {
         'modneo-confman.ui.dialog',
         'modneo-confman.ui.render',
@@ -75,7 +58,7 @@ M.remove = function()
 end
 
 ---calls rmove and afterwards setup
----@param opts Modneo.ConfmanOptions? custom settings
+---@param opts Modneo.Confman.Options? custom settings
 M.reload = function(opts)
     M.remove()
     M.setup(opts)

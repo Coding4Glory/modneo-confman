@@ -44,10 +44,13 @@ local function get_files(folder, enabled)
     )
 
     local found = vim.fn.glob(search_path, false, true, true)
-    for i, f in ipairs(found) do
-        found[i] = enabled[f] or f
+    local final = {}
+    for _, f in ipairs(found) do
+        if vim.tbl_contains(enabled, f) then goto continue end
+        table.insert(final, enabled[f] or f)
+        ::continue::
     end
-    return found
+    return final
 end
 
 ---@type Modneo.Confman.Core.Strategy
@@ -110,6 +113,10 @@ local M = {
         end
 
         return get_files(category, enabled)
+    end,
+
+    get_enabled = function()
+        return get_files(config.options.link_dir, {})
     end,
 
     name = function() return 'symlink' end,

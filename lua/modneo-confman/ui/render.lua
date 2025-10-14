@@ -29,7 +29,7 @@ local function format_fullpath(path, link_dir)
     return fmt_ln(vim.fs.basename(path), enabled)
 end
 
----@param item ConfmanConfItem
+---@param item Modneo.Confman.ConfItem
 ---@return string
 local function format_item(item)
     return fmt_ln(item.name, item.enabled)
@@ -45,25 +45,16 @@ local function sorted_categories(list)
     return categories
 end
 
----@class Modneo.ConfmanUiEnabledSign
-M.sign = {
-    ---the sign group used by the plugin
-    ---@type string
-    group = 'Confman',
-    ---the sign name used by the plugin
-    ---@type string
-    name = 'ConfmanEnabled'
-}
+local signs = require'modneo-confman.ui.signs'
 
 ---initialzes the renderer with the configuration
 M.init = function()
-    M.options = require'modneo-confman.config'.options
+    M.options = require('modneo-confman.config').options
     return M
 end
 
----prints the given plugins
+---prints the given plugins.
 ---@param plugins table a table of th form { 'cat' = { 'mod', ... }, ... }
----@param settings ConfmanOptions
 M.print_plugin_files = function(plugins)
     local categories = sorted_categories(plugins)
     for i, c in ipairs(categories) do
@@ -74,7 +65,6 @@ M.print_plugin_files = function(plugins)
             else
                 vim.print(format_item(p))
             end
-
         end
     end
 end
@@ -84,40 +74,52 @@ end
 ---@param buf integer buffer to write to
 M.to_buf = function(plugins, buf)
     if vim.api.nvim_buf_line_count(buf) > 1 then
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, {''})
-        vim.fn.sign_unplace(M.sign.group, { buf = buf })
+        vim.api.nvim_buf_set_lines(buf, 0, -1, false, { '' })
+        vim.fn.sign_unplace(signs.group, { buf = buf })
     end
 
-    vim.api.nvim_buf_set_lines(buf, -2, -1, false, { 'Usage: [e]nable | [d]isable | [q]uit', '' })
+    vim.api.nvim_buf_set_lines(
+        buf,
+        -2,
+        -1,
+        false,
+        { 'Usage: [e]nable | [d]isable | [q]uit', '' }
+    )
     local line_counter = vim.api.nvim_buf_line_count(buf)
     local categories = sorted_categories(plugins)
+    local is_autoload = require('modneo-confman.config').is_autoload
 
     for _, c in ipairs(categories) do
         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
+        vim.fn.sign_place(
+            line_counter,
+            signs.group,
+            is_autoload(c) and signs.names.autoload or signs.names.category,
+            buf,
+            { lnum = line_counter }
+        )
         line_counter = line_counter + 1
         for _, p in ipairs(plugins[c]) do
-            vim.api.nvim_buf_set_lines(buf, -2, -1, false, { '- ' .. p.name, '' })
+            vim.api.nvim_buf_set_lines(
+                buf,
+                -2,
+                -1,
+                false,
+                { '- ' .. p.name, '' }
+            )
             p.line_number = line_counter
             if p.enabled then
-                vim.fn.sign_place(line_counter, M.sign.group, M.sign.name, buf, { lnum = line_counter })
+                vim.fn.sign_place(
+                    line_counter,
+                    signs.group,
+                    signs.names.config,
+                    buf,
+                    { lnum = line_counter }
+                )
             end
             line_counter = line_counter + 1
         end
     end
 end
 
--- not required, yet
--- M.refresh_enabled = function(items, buf)
---     for c, pl in pairs(items) do
---         vim.api.nvim_buf_set_lines(buf, -2, -1, false, { c, '' })
---         for _, p in ipairs(pl) do
---             if p.enabled then
---                 vim.fn.sign_place(p.line_number, M.sign.group, M.sign.name, buf, { lnum = p.line_number})
---             else
---                 vim.fn.sign_unplace(M.sign.group, { buf = buf, id = p.line_number })
---             end
---         end
---     end
--- end
---
 return M

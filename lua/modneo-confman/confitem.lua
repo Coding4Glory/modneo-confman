@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
 ---@class Modneo.ConfmanConfItemFactory
----@field options Modneo.ConfmanOptions
+---@field options Modneo.Confman.Options
 ---@field strategy Modneo.Confman.Core.Strategy
 local F = {}
 
@@ -54,10 +54,10 @@ F.new = function(path, strategy)
     end
 
     ---refreshes the state of the confItem instance accordingly to given path
-    ---@param path string the new real path
-    M.refresh = function(path)
-        M.abspath = path
-        M.realpath = (vim.uv or vim.loop).fs_realpath(path)
+    ---@param new_path string the new real path
+    M.refresh = function(new_path)
+        M.abspath = new_path
+        M.realpath = (vim.uv or vim.loop).fs_realpath(new_path)
         M.category = vim.fs.basename(vim.fs.dirname(M.realpath))
         local simple_name = vim.fs.basename(M.realpath) or vim.fs.basename(M.abspath)
         M.name = simple_name:match('(.*)' .. F.options.disabled_suffix .. '$') or simple_name

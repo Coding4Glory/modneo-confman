@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class Modneo.ConfmanConfig
+---@class Modneo.Confman.Config
 local M = {}
 
 ---@alias Modneo.ConfmanStrategy
@@ -25,7 +25,7 @@ local M = {}
 
 local strategies = { 'symlink', 'rename' }
 
----@class Modneo.ConfmanOptions
+---@class Modneo.Confman.Options
 ---@field get_plugin_dir? fun():string will be added during setup
 local defaults = {
     ---The directory where the plugin categories are located, defaults to
@@ -65,15 +65,27 @@ local defaults = {
     default_filter = '.[lv][iu][am]',
     ---the sign used to highlight enabled plugins in the dialog window
     ---@type string
-    enabled_sign = '*'
+    ---@deprecated use signes.enabled instead
+    enabled_sign = '*',
+    ---signs aka icons to use within the dialog
+    ---@class Modneo.Confman.Options.Signs
+    signs = {
+        ---the character used to highlight enabled configs
+        ---in *plugin_lib*
+        config = '+',
+        ---the character used to mark categories
+        category = '*',
+        ---the character used to mark autoexec folders
+        autoload = '*',
+    }
 }
 
----@type Modneo.ConfmanOptions
+---@type Modneo.Confman.Options
 M.options = defaults
 
 ---initializes the configuration
 ---will accumulate changes if called multiple times
----@param args Modneo.ConfmanOptions?
+---@param args Modneo.Confman.Options?
 M.setup = function(args)
     M.options = vim.tbl_deep_extend('force', M.options, args or {})
     M.options.get_plugin_dir = function()
@@ -83,11 +95,6 @@ M.setup = function(args)
         error('Strategy ' .. strategies ' .. is not supported!')
     end
     return M.options
-end
-
----reinitializes the configuration from defaults
-M.init = function()
-    return M.setup()
 end
 
 M.get_plugin_dir = function ()
@@ -109,5 +116,35 @@ M.get_file_pattern = function(name, filter)
     return name
 end
 
+local autoload = {
+    'plugin',
+    'ftplugin',
+    'ftdetect',
+}
+
+---gets an iterator only returning the folders no indizes
+---*Example:*
+---```
+---local config = requrie('modneo-confman.config')
+---for folder in config.autoexec_iter() do
+---   --...
+---done
+---```
+---@return Iterator
+M.autoexec_iter = function()
+    local i = 0
+    local j = #autoload
+
+    return function()
+        i = i + 1
+        if i <= j then return autoload[i] end
+    end
+end
+
+---gets a value indicating if the given folder
+---is an autoexec folder
+M.is_autoload = function(folder)
+    return vim.tbl_contains(autoload, folder)
+end
 
 return M

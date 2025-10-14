@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 local config = require('modneo-confman.config')
 
+local helper = require('modneo-confman.helper')
+
 local search = {
     config.options.default_filter,
     config.options.default_filter .. config.options.disabled_suffix,
@@ -67,7 +69,7 @@ local function get_files(basedir, folder, pattern)
     return vim.fn.glob(search_path, false, true, true)
 end
 
----@class Modneo.Confman.Strategy.RenameBase
+---@class Modneo.Confman.Strategies.RenameBase
 local M = {}
 
 ---enables the item if disabled by name, bang is ignored by this strategy
@@ -128,14 +130,17 @@ M.get_configs = function(category)
     local found = {}
     for _, p in ipairs(search) do
         local in_cat = get_files(M.basedir, category, '*' .. p)
-        for _, x in ipairs(in_cat) do
-            if not vim.tbl_contains(found, x) then
-                table.insert(found, x)
-            end
-        end
+        found = helper.tbl_merge(found, in_cat)
     end
 
     return found
+end
+
+
+---retrieves a list of files without the disabled suffix
+---@return string[]
+M.get_enabled = function()
+    return get_files(M.basedir, nil, config.get_file_pattern())
 end
 
 ---creates the derived class

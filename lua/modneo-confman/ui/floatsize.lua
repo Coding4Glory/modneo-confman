@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@type function
 ---gets the number of columns in the longest line
 ---@param buf integer buffer number
 ---@return integer the column count taken from the longest line
@@ -29,58 +28,68 @@ local function window_width(buf)
     return longest + 2 -- sign column and trailing column
 end
 
-local function side_length(min, max, content)
-    if content > max then return max end
-    if content < min then return min end
-    return content
+local function side_length(min, max, content, padding)
+    local function conservative(min, max, content)
+        if content > max then
+            return max
+        end
+        if content < min then
+            return min
+        end
+        return content
+    end
+    local result = conservative(min, max, content)
+    local desired = result + padding
+    if desired <= max then
+        return desired
+    else
+        return result
+    end
 end
 
----@class FloatSize
+---@class Modneo.Confman.UI.FloatSize
 ---@field ui_width integer
 ---@field ui_height integer
----@field y_border integer minimum space above and below the window
----@field x_border integer minimum space beside the window
+---@field y_margin integer minimum space above and below the window
+---@field x_margin integer minimum space beside the window
 ---@field content_height integer height of content
 ---@field content_width integer width of content
 local M = {
-    x_border = 10,
-    y_border = 5,
+    x_margin = 10,
+    y_margin = 5,
+    x_padding = 2,
+    y_padding = 0,
 }
 
 ---gets the hight for the floating window
----@type function
 ---@param min integer|nil minimum height
 ---@return integer
 M.height = function(min)
-    local max_height = M.ui_height - (M.y_border * 2)
-    return side_length(min or 3, max_height, M.content_height)
+    local max_height = M.ui_height - (M.y_margin * 2)
+    return side_length(min or 3, max_height, M.content_height, M.y_padding)
 end
 
 ---gets the hight for the floating window
----@type function
 ---@param min integer|nil
 ---@return integer
 M.width = function(min)
-    local max_width = M.ui_width - (M.x_border * 2)
-    return side_length(min or 10, max_width, M.content_width)
+    local max_width = M.ui_width - (M.x_margin * 2)
+    return side_length(min or 10, max_width, M.content_width, M.x_padding)
 end
 
 ---gets the start row for the floating window
----@type function
 ---@return integer
 M.row = function()
-    return (M.ui_height/2) - (M.height()/2)
+    return (M.ui_height / 2) - (M.height() / 2)
 end
 
 ---gets the start col for the floating window
----@type function
 ---@return integer
 M.col = function()
-    return (M.ui_width/2) - (M.width()/2)
+    return (M.ui_width / 2) - (M.width() / 2)
 end
 
 ---function to call when the UI get's resized, e. g. in a terminal window
----@type function
 M.on_resize = function()
     M.ui_width = vim.o.columns
     M.ui_height = vim.o.lines
@@ -96,12 +105,12 @@ M.to_options = function(border)
         height = M.height(),
         col = M.col(),
         row = M.row(),
-        border = border
+        border = border,
     }
 end
 
 ---initializes the table for a new buffer
----@return FloatSize
+---@return Modneo.Confman.UI.FloatSize
 M.new = function(buf)
     local line_count = vim.api.nvim_buf_line_count(buf)
     M.ui_width = vim.o.columns
@@ -112,4 +121,3 @@ M.new = function(buf)
 end
 
 return M
-
