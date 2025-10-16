@@ -113,7 +113,8 @@ end
 ---@return string?
 M.find = function(category, name)
     for _, p in ipairs(search) do
-        local found = get_files(M.basedir, category, config.get_file_pattern(name, p))
+        local file_pattern = config.get_file_pattern(name, p)
+        local found = get_files(M.basedir, category, file_pattern)
         if #found == 1 then
             return found[1]
         end

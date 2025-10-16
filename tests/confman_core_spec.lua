@@ -15,6 +15,23 @@ local rename_settings = {
     strategy = 'rename',
 }
 
+---@type Modneo.Confman.Core.Strategy
+local no_autoload = {
+    disable_conf = function(_) end,
+    enable_conf = function(_, _) end,
+    get_configs = function(_) return {} end,
+    get_enabled = function (_) return {} end,
+    find = function(_) return nil end,
+    is_enabled = function(_) return false end,
+    name = function() return 'au_mock' end,
+}
+
+local get_sut = function (opts)
+    local sut = plugin.setup(opts)
+    sut.autoload = no_autoload
+    return sut
+end
+
 local function count_configs(t)
     local i = 0
     for _, x in pairs(t) do
@@ -54,7 +71,7 @@ end)
 describe('symlink strategy ', function()
     describe('test listing:', function()
         it('all plugins', function()
-            local sut = plugin.setup(readonly_settings)
+            local sut = get_sut(readonly_settings)
             local all_plugins = sut.list_available()
             assert.is_table(all_plugins)
             assert.is_equal(2, count_categories(all_plugins))
@@ -62,7 +79,7 @@ describe('symlink strategy ', function()
         end)
 
         it('enabled plugins', function()
-            local sut = plugin.setup(readonly_settings)
+            local sut = get_sut(readonly_settings)
             local enabled_plugins = sut.list_enabled()
             assert.is_table(enabled_plugins)
             assert.is_equal(0, count_categories(enabled_plugins))
@@ -73,22 +90,22 @@ describe('symlink strategy ', function()
 
     describe('test getting single:', function()
         it('with simple name', function()
-            local sut = plugin.setup(readonly_settings)
+            local sut = get_sut(readonly_settings)
             assert.not_nil(sut.get_item('cat_one', 'mod_one'))
         end)
         it('with full name', function()
-            local sut = plugin.setup(readonly_settings)
+            local sut = get_sut(readonly_settings)
             assert.not_nil(sut.get_item('cat_one', 'mod_two.lua'))
         end)
         it('nothing to find', function()
-            local sut = plugin.setup(readonly_settings)
+            local sut = get_sut(readonly_settings)
             assert.is_nil(sut.get_item('not', 'existing'))
         end)
     end)
 
     describe('test management', function()
         it('enables a plugin', function ()
-            local sut = plugin.setup(symlink_settings)
+            local sut = get_sut(symlink_settings)
             sut.enable('cat_one', 'mod_one')
             local link_pattern = vim.fs.joinpath(uv.cwd(), symlink_settings.plugin_lib, 'enabled', '*mod_one*')
             local result = vim.fn.glob(link_pattern, false, true, false)
@@ -96,7 +113,7 @@ describe('symlink strategy ', function()
             vim.fs.rm(result[1])
         end)
         it('disables a plugin', function ()
-            local sut = plugin.setup(symlink_settings)
+            local sut = get_sut(symlink_settings)
             sut.enable('cat_two', 'mod_three.lua')
             local link_pattern = vim.fs.joinpath(uv.cwd(), symlink_settings.plugin_lib, 'enabled', '*mod_three*')
             local link_path = vim.fn.glob(link_pattern, false, true, false)
@@ -112,7 +129,7 @@ describe('rename strategy ', function()
     readonly_settings.strategy = 'rename'
     describe('test listing:', function()
         it('all plugins', function()
-            local sut = plugin.setup(rename_settings)
+            local sut = get_sut(rename_settings)
             local all_plugins = sut.list_available()
             assert.is_table(all_plugins)
             assert.is_equal(2, count_categories(all_plugins))
@@ -120,7 +137,7 @@ describe('rename strategy ', function()
         end)
 
         it('enabled plugins', function()
-            local sut = plugin.setup(rename_settings)
+            local sut = get_sut(rename_settings)
             local enabled_plugins = sut.list_enabled()
             assert.is_table(enabled_plugins)
             assert.is_equal(0, count_categories(enabled_plugins))
@@ -147,7 +164,7 @@ describe('rename strategy ', function()
     describe('test management', function()
         it('enables a plugin', function ()
             local on_name = vim.fs.joinpath(uv.cwd(), rename_settings.plugin_lib, 'cat_one', 'mod_two.lua')
-            local sut = plugin.setup(rename_settings)
+            local sut = get_sut(rename_settings)
             sut.enable('cat_one', 'mod_two')
             assert.not_nil(uv.fs_stat(on_name))
             assert.is_nil(uv.fs_stat(on_name .. '.off'))
@@ -155,7 +172,7 @@ describe('rename strategy ', function()
         it('disables a plugin', function ()
             local off_name = vim.fs.joinpath(uv.cwd(), rename_settings.plugin_lib, 'cat_two', 'mod_three.lua.off')
             uv.fs_rename(off_name, off_name:match('(.*).off$'))
-            local sut = plugin.setup(rename_settings)
+            local sut = get_sut(rename_settings)
             sut.disable('cat_two', 'mod_three')
             assert.is_nil(uv.fs_stat(off_name:match('(.*).off$')))
             assert.not_nil(uv.fs_stat(off_name))

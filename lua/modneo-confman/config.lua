@@ -104,13 +104,17 @@ M.get_plugin_dir = function ()
     )
 end
 
+-- TODO: Problem! when using rename strategy detection is not properly working anymore
+
 ---gets the glob pattern for the given filename using the default_filter value
 ---@param name string? the filename, ommitting or nil will result in an asterisk `*`.
 ---@param filter string? an optional filter to override the default
 M.get_file_pattern = function(name, filter)
     name = name or '*'
-    if name:match('.+%' .. (filter or M.options.default_filter) .. '$') == nil then
-        return name .. (filter or M.options.default_filter)
+
+    filter = filter or M.options.default_filter
+    if name:match('.+%' .. filter .. '$') == nil then
+        return name .. filter
     end
     --- has already a matching suffix
     return name
