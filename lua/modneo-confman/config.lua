@@ -26,7 +26,6 @@ local M = {}
 local strategies = { 'symlink', 'rename' }
 
 ---@class Modneo.Confman.Options
----@field get_plugin_dir? fun():string will be added during setup
 local defaults = {
     ---The directory where the plugin categories are located, defaults to
     ---lua/plugins. The path is expected to be relative.
@@ -88,9 +87,6 @@ M.options = defaults
 ---@param args Modneo.Confman.Options?
 M.setup = function(args)
     M.options = vim.tbl_deep_extend('force', M.options, args or {})
-    M.options.get_plugin_dir = function()
-        return vim.fs.joinpath(M.options.config_root, M.options.plugin_lib)
-    end
     if not vim.tbl_contains(strategies, M.options.strategy) then
         error('Strategy ' .. strategies ' .. is not supported!')
     end
@@ -102,22 +98,6 @@ M.get_plugin_dir = function ()
         (M.options.config_root or vim.fn.stdpath('config')),
         M.options.plugin_lib
     )
-end
-
--- TODO: Problem! when using rename strategy detection is not properly working anymore
-
----gets the glob pattern for the given filename using the default_filter value
----@param name string? the filename, ommitting or nil will result in an asterisk `*`.
----@param filter string? an optional filter to override the default
-M.get_file_pattern = function(name, filter)
-    name = name or '*'
-
-    filter = filter or M.options.default_filter
-    if name:match('.+%' .. filter .. '$') == nil then
-        return name .. filter
-    end
-    --- has already a matching suffix
-    return name
 end
 
 local autoload = {

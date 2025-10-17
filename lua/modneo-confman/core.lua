@@ -40,7 +40,7 @@ M.options = {}
 ---@return table
 M.get_categories = function()
     local r = {}
-    for name, type in vim.fs.dir(M.options.get_plugin_dir()) do
+    for name, type in vim.fs.dir(M.config.get_plugin_dir()) do
         if type == 'directory' then
             table.insert(r, name)
         end
@@ -51,7 +51,7 @@ end
 M.get_category = function(cat)
     local r = {}
     for name, type in
-    vim.fs.dir(vim.fs.joinpath(M.options.get_plugin_dir(), cat))
+    vim.fs.dir(vim.fs.joinpath(M.config.get_plugin_dir(), cat))
     do
         if type == 'file' then
             table.insert(r, cat .. '/' .. name)
@@ -140,7 +140,7 @@ M.enable = function(category, name, force)
                     'Config file matching %s/%s not found in %s',
                     category,
                     name,
-                    M.options.get_plugin_dir()
+                    M.config.get_plugin_dir()
                 )
             )
         end
