@@ -24,6 +24,24 @@ local search = {
     config.options.default_filter,
     config.options.default_filter .. config.options.disabled_suffix,
 }
+
+local function get_file_patterns(name)
+    local i = 0
+    local last = #search
+
+    name = name or '*'
+
+    return function ()
+        i = i + 1
+        if i <= last then
+            if name:match('.%' .. search[i] .. '$') == nil then
+                return name .. search[i]
+            end
+            return name
+        end
+    end
+end
+
 ---renames the file
 ---@param item Modneo.Confman.ConfItem the item to rename
 ---@param new_basename string the new basename
@@ -60,12 +78,14 @@ local function get_disabled_name(item)
 end
 
 ---get files from folder inside plugin directory matching pattern
----@param folder string simple folder name
+---@param basedir string the base directory to start the search from
+---@param folder string? simple folder name
 ---@param pattern string file pattern to match agains
 ---@return table
 local function get_files(basedir, folder, pattern)
     local search_path =
         vim.fs.joinpath(basedir, folder or '*', pattern)
+print (search_path)
     return vim.fn.glob(search_path, false, true, true)
 end
 
@@ -112,9 +132,8 @@ end
 ---@param name string
 ---@return string?
 M.find = function(category, name)
-    for _, p in ipairs(search) do
-        local file_pattern = config.get_file_pattern(name, p)
-        local found = get_files(M.basedir, category, file_pattern)
+    for p in get_file_patterns(name) do
+        local found = get_files(M.basedir, category, p)
         if #found == 1 then
             return found[1]
         end
@@ -129,8 +148,8 @@ M.get_configs = function(category)
         return {}
     end
     local found = {}
-    for _, p in ipairs(search) do
-        local in_cat = get_files(M.basedir, category, '*' .. p)
+    for p in get_file_patterns() do
+        local in_cat = get_files(M.basedir, category, p)
         found = helper.tbl_merge(found, in_cat)
     end
 
@@ -141,7 +160,7 @@ end
 ---retrieves a list of files without the disabled suffix
 ---@return string[]
 M.get_enabled = function()
-    return get_files(M.basedir, nil, config.get_file_pattern())
+    return get_files(M.basedir, nil, config.options.default_filter)
 end
 
 ---creates the derived class

@@ -36,11 +36,20 @@ local function get_link_name(category, filename)
     )
 end
 
+---@param name string?
+local function get_file_pattern(name)
+    name = name or '*'
+    if name:match('.%' .. config.options.default_filter .. '$') == nil then
+        return name .. config.options.default_filter
+    end
+    return name
+end
+
 local function get_files(folder, enabled)
     local search_path = vim.fs.joinpath(
         config.get_plugin_dir(),
         folder or '*',
-        config.get_file_pattern()
+        get_file_pattern()
     )
 
     local found = vim.fn.glob(search_path, false, true, true)
@@ -91,7 +100,7 @@ local M = {
         local pattern = vim.fs.joinpath(
             config.get_plugin_dir(),
             category,
-            config.get_file_pattern(name)
+            get_file_pattern(name)
         )
         local found = vim.fn.glob(pattern, false, true, false)
         if #found == 1 then
