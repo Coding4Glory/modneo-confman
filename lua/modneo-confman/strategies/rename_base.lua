@@ -31,7 +31,7 @@ local function get_file_patterns(name)
 
     name = name or '*'
 
-    return function ()
+    return function()
         i = i + 1
         if i <= last then
             if name:match('.%' .. search[i] .. '$') == nil then
@@ -83,97 +83,97 @@ end
 ---@param pattern string file pattern to match agains
 ---@return table
 local function get_files(basedir, folder, pattern)
-    local search_path =
-        vim.fs.joinpath(basedir, folder or '*', pattern)
-print (search_path)
+    local search_path = vim.fs.joinpath(basedir, folder or '*', pattern)
     return vim.fn.glob(search_path, false, true, true)
 end
 
----@class Modneo.Confman.Strategies.RenameBase
-local M = {}
-
----enables the item if disabled by name, bang is ignored by this strategy
----@param item Modneo.Confman.ConfItem
----@param _ boolean
-M.enable_conf = function(item, _)
-    local new_name = get_enabled_name(item)
-    if new_name == nil then
-        error(
-            'could not enable '
-                .. item.category
-                .. '/'
-                .. item.name
-                .. ' file might not exist anymore'
-        )
-    end
-    rename(item, new_name)
-    item.enabled = true
-end
-
----disables the item if enabled by name
----@param item Modneo.Confman.ConfItem
-M.disable_conf = function(item)
-    local new_name = get_disabled_name(item)
-    rename(item, new_name)
-    item.enabled = false
-end
-
----checks if the disabled suffix is present
----@param item Modneo.Confman.ConfItem
-M.is_enabled = function(item)
-    return not vim.endswith(
-        (item.realpath or item.abspath),
-        config.options.disabled_suffix
-    )
-end
-
----gets the first config file matching category and name
----@param category string the category of the config item to find
----@param name string
----@return string?
-M.find = function(category, name)
-    for p in get_file_patterns(name) do
-        local found = get_files(M.basedir, category, p)
-        if #found == 1 then
-            return found[1]
-        end
-    end
-end
-
----retrieves configs from all categories
----@param category string the category to filter on
----@return string[]
-M.get_configs = function(category)
-    if category == config.options.link_dir then
-        return {}
-    end
-    local found = {}
-    for p in get_file_patterns() do
-        local in_cat = get_files(M.basedir, category, p)
-        found = helper.tbl_merge(found, in_cat)
-    end
-
-    return found
-end
-
-
----retrieves a list of files without the disabled suffix
----@return string[]
-M.get_enabled = function()
-    return get_files(M.basedir, nil, config.options.default_filter)
-end
+local C = {}
 
 ---creates the derived class
 ---@param dir string directory to start from
 ---@param name string the name of the derivative
----@param C table
+---@param D table
 ---regular strategy starts from plugin directory, autoload from config root
 ---@return Modneo.Confman.Core.Strategy
-M.derive = function(dir, name, C)
+C.derive = function(dir, name, D)
+    ---@class Modneo.Confman.Strategies.RenameBase
+    local M = {}
+
+    ---enables the item if disabled by name, bang is ignored by this strategy
+    ---@param item Modneo.Confman.ConfItem
+    ---@param _ boolean
+    M.enable_conf = function(item, _)
+        local new_name = get_enabled_name(item)
+        if new_name == nil then
+            error(
+                'could not enable '
+                    .. item.category
+                    .. '/'
+                    .. item.name
+                    .. ' file might not exist anymore'
+            )
+        end
+        rename(item, new_name)
+        item.enabled = true
+    end
+
+    ---disables the item if enabled by name
+    ---@param item Modneo.Confman.ConfItem
+    M.disable_conf = function(item)
+        local new_name = get_disabled_name(item)
+        rename(item, new_name)
+        item.enabled = false
+    end
+
+    ---checks if the disabled suffix is present
+    ---@param item Modneo.Confman.ConfItem
+    M.is_enabled = function(item)
+        return not vim.endswith(
+            (item.realpath or item.abspath),
+            config.options.disabled_suffix
+        )
+    end
+
+    ---gets the first config file matching category and name
+    ---@param category string the category of the config item to find
+    ---@param name string
+    ---@return string?
+    M.find = function(category, name)
+        for p in get_file_patterns(name) do
+            local found = get_files(M.basedir, category, p)
+            if #found == 1 then
+                return found[1]
+            end
+        end
+    end
+
+    ---retrieves configs from all categories
+    ---@param category string the category to filter on
+    ---@return string[]
+    M.get_configs = function(category)
+        if category == config.options.link_dir then
+            return {}
+        end
+        local found = {}
+        for p in get_file_patterns() do
+            local in_cat = get_files(M.basedir, category, p)
+            found = helper.tbl_merge(found, in_cat)
+        end
+
+        return found
+    end
+
+    ---retrieves a list of files without the disabled suffix
+    ---@return string[]
+    M.get_enabled = function()
+        return get_files(M.basedir, nil, config.options.default_filter)
+    end
     M.basedir = dir
-    M.name = function() return name end
-    setmetatable(C, { __index = M })
-    return C
+    M.name = function()
+        return name
+    end
+    setmetatable(D, { __index = M })
+    return D
 end
 
-return M
+return C
