@@ -35,8 +35,12 @@ M.setup = function(core)
         end
         -- ConfmanDisabled
         local enabled = {}
-        for _, p in core.list_enabled() do
-            table.insert(enabled, string.format("%s/%p", p.category,  p.name))
+        for c, pl in pairs(core.list_enabled()) do
+            if proto_cat == nil or proto_cat == c then
+                for _, p in ipairs(pl) do
+                    table.insert(enabled, string.format("%s/%s", p.category,  p.name))
+                end
+            end
         end
         return enabled
     end
