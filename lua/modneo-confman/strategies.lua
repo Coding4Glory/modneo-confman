@@ -17,10 +17,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
 ---@type table<Modneo.ConfmanStrategy, Modneo.Confman.Core.Strategy>
-local M = {}
 
-require'modneo-confman.strategies.rename'(M)
-require'modneo-confman.strategies.symlink'(M)
+local M = {
+    loaded = {}
+}
+
+M.init = function()
+    require'modneo-confman.strategies.rename'(M)
+    require'modneo-confman.strategies.symlink'(M)
+    return M
+end
 
 return M
 

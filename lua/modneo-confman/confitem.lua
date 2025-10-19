@@ -23,7 +23,7 @@ local F = {}
 
 F.setup = function()
     F.options = require('modneo-confman.config').options
-    F.strategy = require('modneo-confman.strategies')[F.options.strategy]
+    F.strategy = require('modneo-confman.strategies').init()[F.options.strategy]
     return F
 end
 

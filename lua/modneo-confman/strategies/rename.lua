@@ -16,11 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
-local config = require('modneo-confman.config')
-
-local M = require('modneo-confman.strategies.rename_base')
-    .derive(config.get_plugin_dir(), 'rename', {})
 
 return function (S)
+    local config = require('modneo-confman.config')
+    local M = require('modneo-confman.strategies.rename_base')
+        .derive(config.get_plugin_dir(), 'rename', {})
     S[M.name()] = M
 end

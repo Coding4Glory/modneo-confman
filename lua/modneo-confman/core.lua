@@ -209,7 +209,7 @@ M.init = function()
     M.config = require('modneo-confman.config')
     M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
-    M.strategies = require('modneo-confman.strategies')
+    M.strategies = require('modneo-confman.strategies').init()
     M.strategy = function()
         return M.strategies[M.options.strategy]
     end

@@ -20,28 +20,6 @@ local config = require('modneo-confman.config')
 
 local helper = require('modneo-confman.helper')
 
-local search = {
-    config.options.default_filter,
-    config.options.default_filter .. config.options.disabled_suffix,
-}
-
-local function get_file_patterns(name)
-    local i = 0
-    local last = #search
-
-    name = name or '*'
-
-    return function()
-        i = i + 1
-        if i <= last then
-            if name:match('.%' .. search[i] .. '$') == nil then
-                return name .. search[i]
-            end
-            return name
-        end
-    end
-end
-
 ---renames the file
 ---@param item Modneo.Confman.ConfItem the item to rename
 ---@param new_basename string the new basename
@@ -77,6 +55,33 @@ local function get_disabled_name(item)
     return vim.fs.basename(item.realpath) .. config.options.disabled_suffix
 end
 
+local function get_file_patterns(name)
+    name = name or '*'
+    local suffix_filter = name:match(config.options.default_filter)
+        or config.options.default_filter
+    local off_filter = suffix_filter == config.options.default_filter
+        and suffix_filter .. config.options.disabled_suffix
+        or config.options.disabled_suffix
+
+    local search = {
+        suffix_filter,
+        off_filter
+    }
+
+    local i = 0
+    local last = #search
+    return function()
+        i = i + 1
+        if i <= last then
+            -- don't forget the % is to mask the appended dot
+            if name:match('.%' .. search[i] .. '$') == nil then
+                return name .. search[i]
+            end
+            return name
+        end
+    end
+end
+
 ---get files from folder inside plugin directory matching pattern
 ---@param basedir string the base directory to start the search from
 ---@param folder string? simple folder name
@@ -98,6 +103,7 @@ local C = {}
 C.derive = function(dir, name, D)
     ---@class Modneo.Confman.Strategies.RenameBase
     local M = {}
+    config = require('modneo-confman.config')
 
     ---enables the item if disabled by name, bang is ignored by this strategy
     ---@param item Modneo.Confman.ConfItem
@@ -136,7 +142,7 @@ C.derive = function(dir, name, D)
 
     ---gets the first config file matching category and name
     ---@param category string the category of the config item to find
-    ---@param name string
+    ---@param name string name of the module to find
     ---@return string?
     M.find = function(category, name)
         for p in get_file_patterns(name) do

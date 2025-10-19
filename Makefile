@@ -23,6 +23,7 @@ $(WRITE_DIRS):
 	@mkdir -p $@
 
 fixture: $(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS) $(WRITE_DIRS)
+	@mv $(FIXTURE_DIR)/rename/cat_two/mod_three.lua.off $(FIXTURE_DIR)/rename/cat_two/mod_three.lua
 
 test: fixture
 	@nvim \

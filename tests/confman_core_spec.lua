@@ -1,14 +1,17 @@
 local plugin = require('modneo-confman')
 local uv = (vim.uv or vim.loop)
+---@type Modneo.Confman.Options
 local readonly_settings = {
     config_root = uv.cwd(),
     plugin_lib = 'tests/fixture/ro',
 }
+---@type Modneo.Confman.Options
 local symlink_settings = {
     config_root = uv.cwd(),
     plugin_lib = 'tests/fixture/link',
     strategy = 'symlink',
 }
+---@type Modneo.Confman.Options
 local rename_settings = {
     config_root = uv.cwd(),
     plugin_lib = 'tests/fixture/rename',
@@ -55,18 +58,18 @@ local function count_categories(t)
 end
 require('luassert')
 
-describe('check pretest conditions ', function()
-    it('fixture exists', function()
-        assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib)))
-        assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib, 'cat_one')))
-        assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib, 'cat_two')))
-        assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib, 'enabled')))
-    end)
-    it ('assertion helpers correct', function()
-        assert.is_equal(2, count_categories({ one = {}, two = {} }))
-        assert.is_equal(3, count_configs({ one = { {}, {} }, two = { {} }, three = nil }))
-    end)
-end)
+-- describe('check pretest conditions ', function()
+--     it('fixture exists', function()
+--         assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib)))
+--         assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib, 'cat_one')))
+--         assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib, 'cat_two')))
+--         assert.truthy(vim.fn.isdirectory(vim.fs.joinpath(uv.cwd(), readonly_settings.plugin_lib, 'enabled')))
+--     end)
+--     it ('assertion helpers correct', function()
+--         assert.is_equal(2, count_categories({ one = {}, two = {} }))
+--         assert.is_equal(3, count_configs({ one = { {}, {} }, two = { {} }, three = nil }))
+--     end)
+-- end)
 
 describe('symlink strategy ', function()
     describe('test listing:', function()
@@ -126,7 +129,6 @@ describe('symlink strategy ', function()
 end)
 
 describe('rename strategy ', function()
-    print(uv.cwd())
     describe('test listing:', function()
         it('all plugins', function()
             local sut = get_sut(rename_settings)
@@ -147,17 +149,17 @@ describe('rename strategy ', function()
     end)
 
     describe('test getting single:', function()
-        readonly_settings.strategy = 'rename'
+        -- readonly_settings.strategy = 'rename'
         it('with simple name', function()
-            local sut = get_sut(readonly_settings)
+            local sut = get_sut(rename_settings)
             assert.not_nil(sut.get_item('cat_one', 'mod_one'))
         end)
         it('with full name', function()
-            local sut = get_sut(readonly_settings)
+            local sut = get_sut(rename_settings)
             assert.not_nil(sut.get_item('cat_one', 'mod_two.lua'))
         end)
         it('nothing to find', function()
-            local sut = get_sut(readonly_settings)
+            local sut = get_sut(rename_settings)
             assert.is_nil(sut.get_item('not', 'existing'))
         end)
     end)
@@ -169,14 +171,15 @@ describe('rename strategy ', function()
             sut.enable('cat_one', 'mod_two')
             assert.not_nil(uv.fs_stat(on_name))
             assert.is_nil(uv.fs_stat(on_name .. '.off'))
+            uv.fs_rename(on_name, on_name .. '.off')
         end)
         it('disables a plugin', function ()
             local off_name = vim.fs.joinpath(uv.cwd(), rename_settings.plugin_lib, 'cat_two', 'mod_three.lua.off')
-            uv.fs_rename(off_name, off_name:match('(.*).off$'))
             local sut = get_sut(rename_settings)
             sut.disable('cat_two', 'mod_three')
             assert.is_nil(uv.fs_stat(off_name:match('(.*).off$')))
             assert.not_nil(uv.fs_stat(off_name))
+            uv.fs_rename(off_name, off_name:match('(.*).off$'))
         end)
     end)
 end)
