@@ -172,7 +172,7 @@ C.derive = function(dir, name, D)
     ---retrieves a list of files without the disabled suffix
     ---@return string[]
     M.get_enabled = function()
-        return get_files(M.basedir, nil, config.options.default_filter)
+        return get_files(M.basedir, '*', '*' .. config.options.default_filter)
     end
     M.basedir = dir
     M.name = function()
