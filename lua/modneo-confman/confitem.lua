@@ -34,12 +34,6 @@ end
 ---@see Modneo.Confman.ConfItem
 F.new = function(path, strategy)
     ---@class Modneo.Confman.ConfItem
-    ---@field category string? the plugin category
-    ---@field name string the name of the plugin config file
-    ---@field line_number integer contains the line number after set_line was called
-    ---@field abspath string the absolute path to the plugin file
-    ---@field enabled boolean a value indicating if the plugin is enabled
-    ---@field realpath string? the actual file path, resolved if symlink
     local M = {}
 
     strategy = strategy or F.strategy
@@ -47,7 +41,11 @@ F.new = function(path, strategy)
     ---initializes the instance
     ---@return Modneo.Confman.ConfItem
     M.init = function()
+        ---the absolute path to the plugin file
+        ---@type string
         M.abspath = path
+        ---contains the line number after rendered into a buffer
+        ---@type integer contains the line number after set_line was called
         M.line_number = 0
         M.refresh(path)
         return M
@@ -57,10 +55,18 @@ F.new = function(path, strategy)
     ---@param new_path string the new real path
     M.refresh = function(new_path)
         M.abspath = new_path
+        ---the actual file path, resolved if symlink
+        ---@type string?
         M.realpath = (vim.uv or vim.loop).fs_realpath(new_path)
+        ---the plugin category
+        ---@type string?
         M.category = vim.fs.basename(vim.fs.dirname(M.realpath))
         local simple_name = vim.fs.basename(M.realpath) or vim.fs.basename(M.abspath)
+        ---the name of the plugin config file
+        ---@type string
         M.name = simple_name:match('(.*)' .. F.options.disabled_suffix .. '$') or simple_name
+        ---a value indicating if the plugin is enabled
+        ---@type boolean
         M.enabled = strategy.is_enabled(M)
     end
 

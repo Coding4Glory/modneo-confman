@@ -80,7 +80,7 @@ local defaults = {
 }
 
 ---@type Modneo.Confman.Options
-M.options = defaults
+M.options = vim.tbl_deep_extend('keep', defaults, {})
 
 ---initializes the configuration
 ---will accumulate changes if called multiple times
@@ -93,6 +93,8 @@ M.setup = function(args)
     return M.options
 end
 
+---gets the absolute path to the directory to search for plugin categories
+---@return string
 M.get_plugin_dir = function ()
     return vim.fs.joinpath(
         (M.options.config_root or vim.fn.stdpath('config')),

@@ -53,7 +53,7 @@ end
 M.get_category = function(cat)
     local r = {}
     for name, type in
-    vim.fs.dir(vim.fs.joinpath(M.config.get_plugin_dir(), cat))
+        vim.fs.dir(vim.fs.joinpath(M.config.get_plugin_dir(), cat))
     do
         if type == 'file' then
             table.insert(r, cat .. '/' .. name)
@@ -106,7 +106,8 @@ end
 M.list_available = function()
     local categorized = M.strategy().get_configs()
     local autoexec = M.autoload.get_configs()
-    return vim.tbl_deep_extend('error',
+    return vim.tbl_deep_extend(
+        'error',
         M.item_factory.convert(categorized),
         M.item_factory.convert(autoexec, M.autoload)
     )
@@ -116,8 +117,10 @@ end
 ---@return table<string,Modneo.Confman.ConfItem>
 M.list_enabled = function()
     local categorized = M.strategy().get_enabled()
+    print(vim.inspect(categorized))
     local autoexec = M.autoload.get_enabled()
-    return vim.tbl_deep_extend('error',
+    return vim.tbl_deep_extend(
+        'error',
         M.item_factory.convert(categorized),
         M.item_factory.convert(autoexec, M.autoload)
     )
@@ -205,24 +208,29 @@ M.enabled = function(cat, name)
     end
 end
 
+
 ---Performs migration from one strategy to the other
 ---@param to_strategy Modneo.Confman.Config.Strategy
 M.migrate = function(to_strategy)
     local next = M.strategy(to_strategy)
 
-    for _, p in ipairs(M.list_available()) do
-        local item = M.item_factory.new(p.realpath, next)
-        if p.enabled then
-            p.disable()
-            item.enable()
-        elseif item.enabled then
-            item.disable()
+    for _, l in pairs(M.list_available()) do
+        for _, p in ipairs(l) do
+            local item = M.item_factory.new(p.realpath, next)
+            if p.enabled then
+                p.disable()
+                item.enable()
+            elseif item.enabled then
+                item.disable()
+            end
         end
     end
-
-    require('modneo-confman.config').setup({ strategy = to_strategy })
-    M.init()
-    vim.notify('Config migrated and session reinitialized, but settings must be changed manually', vim.log.levels.WARN)
+    M.options = require('modneo-confman.config').setup({ strategy = to_strategy })
+    M.item_factory = require('modneo-confman.confitem').setup()
+    vim.notify(
+        'Config migrated and session reinitialized, but settings must be changed manually',
+        vim.log.levels.WARN
+    )
 end
 
 ---call on require to apply settings
