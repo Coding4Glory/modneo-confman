@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class Modneo.ConfmanConfItemFactory
+---@class Modneo.Confman.ConfItem.Factory
 ---@field options Modneo.Confman.Options
 ---@field strategy Modneo.Confman.Core.Strategy
 local F = {}

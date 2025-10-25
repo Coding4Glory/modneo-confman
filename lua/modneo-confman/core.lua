@@ -27,9 +27,9 @@ local helper = require('modneo-confman.helper')
 ---@field find fun(category:string,name:string):string?
 ---@field name fun():string
 
----@class Modneo.ConfmanCore
+---@class Modneo.Confman
 ---@field options Modneo.Confman.Options
----@field item_factory Modneo.ConfmanConfItemFactory
+---@field item_factory Modneo.Confman.ConfItem.Factory
 ---@field uv uv
 local M = {}
 
@@ -37,7 +37,7 @@ local M = {}
 M.options = {}
 
 ---gets a list with all plugin categories
----@return table
+---@return string[]
 M.get_categories = function()
     local r = {}
     for name, type in vim.fs.dir(M.config.get_plugin_dir()) do
@@ -48,6 +48,8 @@ M.get_categories = function()
     return r
 end
 
+---gets a list of plugin configs within a category
+---@return string[]
 M.get_category = function(cat)
     local r = {}
     for name, type in
@@ -67,6 +69,9 @@ M.get_configs = function(category)
     return M.item_factory.convert(config_files)
 end
 
+---gets a list of config files in automatically loaded or detected
+---otherwise by neovim or builtin plugins like ftplugin
+---@return table<string,Modneo.Confman.ConfItem>
 M.get_autoloaded = function()
     local result = {}
     for dir in M.config.autoexec_iter() do
@@ -185,7 +190,6 @@ end
 
 ---disables the given plugin
 ---expects a category/name combination in args
----@type function
 ---@param opts vim.api.keyset.create_user_command.command_args
 M.disable_command = function(opts)
     for cat, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
@@ -193,7 +197,6 @@ M.disable_command = function(opts)
     end
 end
 
----@type function
 ---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
     local found = M.strategy().find(cat, name)
@@ -202,9 +205,12 @@ M.enabled = function(cat, name)
     end
 end
 
+---@param to_strategy Modneo.Confman.Config.Strategy
+M.migrate = function(to_strategy)
+end
+
 ---call on require to apply settings
----@type function
----@return Modneo.ConfmanCore
+---@return Modneo.Confman
 M.init = function()
     M.config = require('modneo-confman.config')
     M.options = M.config.options

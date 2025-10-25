@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 return function (S)
     local config = require('modneo-confman.config')
+    ---@class Modneo.Confman.Strategies.Rename : Modneo.Confman.Core.Strategy
     local M = require('modneo-confman.strategies.rename_base')
         .derive(config.get_plugin_dir(), 'rename', {})
     S[M.name()] = M

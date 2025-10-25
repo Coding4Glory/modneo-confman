@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 --]]
 
----@class Modneo.ConfmanLoader
+---@class Modneo.Confman.Loader
 local M = {}
 
 local signs = require('modneo-confman.ui.signs')
 
 ---performs plugin setup with given options
 ---@param opts Modneo.Confman.Options? custom settings
----@return Modneo.ConfmanCore
+---@return Modneo.Confman
 M.setup = function(opts)
     local options = require('modneo-confman.config').setup(opts)
     signs.setup(options)

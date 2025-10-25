@@ -18,12 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 local render = require('modneo-confman.ui.render').init()
 
----@class Modneo.ConfmanCommands
+---@class Modneo.Confman.Commands
 local M = {}
 
 ---@type function
 ---adds the plugin commands
----@param core Modneo.ConfmanCore
+---@param core Modneo.Confman
 M.setup = function(core)
     local function complete_helper(argLead, cmdLine, cursorPos)
         local proto_cat = argLead:match('(.+)/.*')
