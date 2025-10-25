@@ -205,8 +205,24 @@ M.enabled = function(cat, name)
     end
 end
 
+---Performs migration from one strategy to the other
 ---@param to_strategy Modneo.Confman.Config.Strategy
 M.migrate = function(to_strategy)
+    local next = M.strategy(to_strategy)
+
+    for _, p in ipairs(M.list_available()) do
+        local item = M.item_factory.new(p.realpath, next)
+        if p.enabled then
+            p.disable()
+            item.enable()
+        elseif item.enabled then
+            item.disable()
+        end
+    end
+
+    require('modneo-confman.config').setup({ strategy = to_strategy })
+    M.init()
+    vim.notify('Config migrated and session reinitialized, but settings must be changed manually', vim.log.levels.WARN)
 end
 
 ---call on require to apply settings
@@ -216,8 +232,11 @@ M.init = function()
     M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
     M.strategies = require('modneo-confman.strategies').init()
-    M.strategy = function()
-        return M.strategies[M.options.strategy]
+    ---gets the given strategy or the default strategy if ommited
+    ---@param which Modneo.Confman.Config.Strategy?
+    ---@return Modneo.Confman.Core.Strategy
+    M.strategy = function(which)
+        return M.strategies[which or M.options.strategy]
     end
     M.autoload = require('modneo-confman.strategies.autoload')
     M.uv = (vim.uv or vim.loop)

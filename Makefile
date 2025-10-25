@@ -12,18 +12,22 @@ MOCKS := ${FIXTURE_DIR}/ro/cat_one/mod_one.lua ${FIXTURE_DIR}/ro/cat_one/mod_two
 RW_MOCKS := $(subst ro,rw,$(MOCKS))
 REN_MOCKS := $(addsuffix .off,$(subst ro,rename,$(MOCKS)))
 LINK_MOCKS := $(subst ro,link,$(MOCKS))
+MIGRATE_MOCKS := $(subst ro,migrate,$(MOCKS))
 
-$(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS):
+
+$(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS) $(MIGRATE_MOCKS):
 	@mkdir -p $(@D)
 	@echo -e "vim.g.confman_test_$(notdir $(@:%.lua=%)) = 1\n" > $@
 
-WRITE_DIRS := $(FIXTURE_DIR)/ro/$(ENABLED_DIR) $(FIXTURE_DIR)/rw/$(ENABLED_DIR) $(FIXTURE_DIR)/rename/$(ENABLED_DIR) $(FIXTURE_DIR)/link/$(ENABLED_DIR)
+WRITE_DIRS := $(FIXTURE_DIR)/ro/$(ENABLED_DIR) $(FIXTURE_DIR)/rw/$(ENABLED_DIR) $(FIXTURE_DIR)/rename/$(ENABLED_DIR) $(FIXTURE_DIR)/link/$(ENABLED_DIR) ${FIXTURE_DIR}/migrate/${ENABLED_DIR}
 
 $(WRITE_DIRS):
 	@mkdir -p $@
 
-fixture: $(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS) $(WRITE_DIRS)
+fixture: $(MOCKS) $(RW_MOCKS) $(REN_MOCKS) $(LINK_MOCKS) $(WRITE_DIRS) ${MIGRATE_MOCKS}
 	@mv $(FIXTURE_DIR)/rename/cat_two/mod_three.lua.off $(FIXTURE_DIR)/rename/cat_two/mod_three.lua
+	@ln -s ../cat_one/mod_one.lua ${FIXTURE_DIR}/migrate/enabled/cat_one-mod_one.lua
+	@ln -s ../cat_one/mod_two.lua ${FIXTURE_DIR}/migrate/enabled/cat_one-mod_two.lua
 
 test: fixture
 	@nvim \
