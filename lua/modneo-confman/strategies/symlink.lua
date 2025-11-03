@@ -91,6 +91,12 @@ local M = {
         end
     end,
 
+    restore = function (item)
+        if item.abspath ~= item.realpath then
+            vim.uv.fs_unlink(item.abspath)
+        end
+    end,
+
     is_enabled = function(item)
         return vim.fs.basename(vim.fs.dirname(item.abspath))
             == config.options.link_dir

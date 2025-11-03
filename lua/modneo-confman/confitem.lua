@@ -93,7 +93,7 @@ F.new = function(path, strategy)
 end
 
 ---creates a table of ConfmanConfItem instances based on the passed table
----@param plugins table
+---@param plugins string[]
 ---@param strategy Modneo.Confman.Core.Strategy?
 ---@return table<string,Modneo.Confman.ConfItem> a categorized table with ConfmanConfItem lists as values
 F.convert = function(plugins, strategy)
@@ -104,30 +104,15 @@ F.convert = function(plugins, strategy)
     end
 
     -- simple table without categories
-    if #plugins > 0 then
-        for _, file in ipairs(plugins) do
-            local item = F.new(file, strategy)
-            if result[item.category] == nil then
-                result[item.category] = {}
-            end
-            table.insert(result[item.category], item)
+    for _, file in ipairs(plugins) do
+        local item = F.new(file, strategy)
+        if result[item.category] == nil then
+            result[item.category] = {}
         end
-        return result
-    end
-
-    -- already categorized
-    -- will no longer be required soon
-    for c, pl in pairs(plugins) do
-        local converted = {}
-        if pl ~= nil and type(pl) == 'table' then
-            for _, file in ipairs(pl) do
-                local item = F.new(file, strategy)
-                table.insert(converted, item)
-            end
-        end
-        result[c] = converted
+        table.insert(result[item.category], item)
     end
     return result
+
 end
 
 return F

@@ -25,6 +25,7 @@ local helper = require('modneo-confman.helper')
 ---@field get_configs fun(category:string?):string[]
 ---@field get_enabled fun():string[]
 ---@field find fun(category:string,name:string):string?
+---@field restore fun(item:Modneo.Confman.ConfItem)
 ---@field name fun():string
 
 ---@class Modneo.Confman
@@ -117,7 +118,6 @@ end
 ---@return table<string,Modneo.Confman.ConfItem>
 M.list_enabled = function()
     local categorized = M.strategy().get_enabled()
-    print(vim.inspect(categorized))
     local autoexec = M.autoload.get_enabled()
     return vim.tbl_deep_extend(
         'error',
@@ -213,15 +213,16 @@ end
 ---@param to_strategy Modneo.Confman.Config.Strategy
 M.migrate = function(to_strategy)
     local next = M.strategy(to_strategy)
-
+    print('migrating from ' .. M.strategy().name() .. ' to ' .. to_strategy)
     for _, l in pairs(M.list_available()) do
         for _, p in ipairs(l) do
-            local item = M.item_factory.new(p.realpath, next)
-            if p.enabled then
-                p.disable()
-                item.enable()
-            elseif item.enabled then
-                item.disable()
+            local migitem = M.item_factory.new(p.realpath, next)
+            local was_enabled = p.enabled
+            M.strategy().restore(p)
+            if was_enabled then
+                migitem.enable()
+            elseif migitem.enabled then
+                migitem.disable()
             end
         end
     end

@@ -30,10 +30,11 @@ local no_autoload = {
     disable_conf = function(_) end,
     enable_conf = function(_, _) end,
     get_configs = function(_) return {} end,
-    get_enabled = function (_) return {} end,
+    get_enabled = function () return {} end,
     find = function(_) return nil end,
     is_enabled = function(_) return false end,
     name = function() return 'au_mock' end,
+    restore = function(_) end,
 }
 
 local get_sut = function (opts)
@@ -191,6 +192,8 @@ describe('rename strategy ', function()
     end)
 end)
 
+-- this might look like overtesting but it was built up during debugging and
+-- I don't see any reason to strip it down
 describe('test migration', function()
     it('from symlink to rename', function()
         local sut = get_sut(migrate_settings)
