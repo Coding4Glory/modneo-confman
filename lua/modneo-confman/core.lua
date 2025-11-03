@@ -235,16 +235,15 @@ M.migrate = function(to_strategy)
     )
 end
 
+-- ---enabled all modules if strategy is symlink and all config snipppets are disabled
 -- local function on_first_run()
 --     if M.strategy().name() == 'symlink'
 --         and vim.tbl_isempty(M.list_enabled())
 --     then
---         return
+--         M.options = require('modneo-confman.config').setup({ strategy = 'rename' })
+--         M.item_factory = require('modneo-confman.confitem').setup()
+--         M.migrate('symlink')
 --     end
---
---     M.options = require('modneo-confman.config').setup({ strategy = 'rename' })
---     M.item_factory = require('modneo-confman.confitem').setup()
---     M.migrate('symlink')
 -- end
 
 ---call on require to apply settings
