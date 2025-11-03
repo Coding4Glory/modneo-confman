@@ -206,6 +206,7 @@ M.enabled = function(cat, name)
     if found ~= nil then
         return M.item_factory.new(found).enabled
     end
+    return false
 end
 
 
@@ -234,6 +235,18 @@ M.migrate = function(to_strategy)
     )
 end
 
+-- local function on_first_run()
+--     if M.strategy().name() == 'symlink'
+--         and vim.tbl_isempty(M.list_enabled())
+--     then
+--         return
+--     end
+--
+--     M.options = require('modneo-confman.config').setup({ strategy = 'rename' })
+--     M.item_factory = require('modneo-confman.confitem').setup()
+--     M.migrate('symlink')
+-- end
+
 ---call on require to apply settings
 ---@return Modneo.Confman
 M.init = function()
@@ -247,6 +260,7 @@ M.init = function()
     M.strategy = function(which)
         return M.strategies[which or M.options.strategy]
     end
+    -- on_first_run()
     M.autoload = require('modneo-confman.strategies.autoload')
     M.uv = (vim.uv or vim.loop)
     return M
