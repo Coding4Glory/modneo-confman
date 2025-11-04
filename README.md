@@ -139,6 +139,14 @@ require("lazy").setup({
                                                                  *ConfmanInfo*
 :ConfmanInfo                           lists all enabled plugins (no category
                                        shown).
+
+                                                              *ConfmanMigrate*
+:ConfmanMigrate {strategy}             changes the configuration structure to
+                                       match the new strategy. This does also
+                                       affect the current session but you must
+                                       change your configuration for the next
+                                       restart or configuration might not be
+                                       loaded or overcrowded.
 ```
 
 The plugin also supports the `checkhealth` command.

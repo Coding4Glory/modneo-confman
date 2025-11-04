@@ -64,6 +64,15 @@ M.setup = function(core)
         local all_configs = vim.tbl_deep_extend('keep', core.get_configs(), core.get_autoloaded())
         require'modneo-confman.ui.dialog'.show_plugins(all_configs)
     end, { desc = 'show Confman UI' })
+    vim.api.nvim_create_user_command('ConfmanMigrate', function(a)
+        if a.args ~= 'symlink' and a.args ~= 'rename' then
+            error("config can only be migrated to 'symlink' or 'rename'")
+        end
+        if core.strategy().name() == a.args then
+            vim.notify('config strategy already in place')
+        end
+        core.migrate(a.args)
+    end, { desc = 'migrate to other confman strategy', nargs = 1, complete = function() return { 'symlink', 'rename' } end })
 end
 
 ---removes the commands prefixed with Confman
