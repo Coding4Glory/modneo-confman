@@ -1,21 +1,28 @@
 local plugin = require('modneo-confman')
 local uv = (vim.uv or vim.loop)
+local test_root = uv.cwd()
 ---@type Modneo.Confman.Options
 local readonly_settings = {
-    config_root = uv.cwd(),
+    config_root = test_root,
     plugin_lib = 'tests/fixture/ro',
 }
 ---@type Modneo.Confman.Options
 local symlink_settings = {
-    config_root = uv.cwd(),
+    config_root = test_root,
     plugin_lib = 'tests/fixture/link',
     strategy = 'symlink',
 }
 ---@type Modneo.Confman.Options
 local rename_settings = {
-    config_root = uv.cwd(),
+    config_root = test_root,
     plugin_lib = 'tests/fixture/rename',
     strategy = 'rename',
+}
+---@type Modneo.Confman.Options
+local migrate_settings = {
+    config_root = test_root,
+    strategy = 'symlink',
+    plugin_lib = 'tests/fixture/migrate',
 }
 
 ---@type Modneo.Confman.Core.Strategy
@@ -23,10 +30,11 @@ local no_autoload = {
     disable_conf = function(_) end,
     enable_conf = function(_, _) end,
     get_configs = function(_) return {} end,
-    get_enabled = function (_) return {} end,
+    get_enabled = function () return {} end,
     find = function(_) return nil end,
     is_enabled = function(_) return false end,
     name = function() return 'au_mock' end,
+    restore = function(_) end,
 }
 
 local get_sut = function (opts)
@@ -139,11 +147,11 @@ describe('rename strategy ', function()
         end)
 
         it('enabled plugins', function()
-            local sut = get_sut(rename_settings)
+            local sut = get_sut(readonly_settings)
             local enabled_plugins = sut.list_enabled()
             assert.is_table(enabled_plugins)
-            assert.is_equal(0, count_categories(enabled_plugins))
-            assert.is_equal(0, count_configs(enabled_plugins))
+            assert.is_equal(2, count_categories(enabled_plugins))
+            assert.is_equal(4, count_configs(enabled_plugins))
         end)
 
     end)
@@ -182,6 +190,25 @@ describe('rename strategy ', function()
             uv.fs_rename(off_name, off_name:match('(.*).off$'))
         end)
     end)
+end)
+
+-- this might look like overtesting but it was built up during debugging and
+-- I don't see any reason to strip it down
+describe('test migration', function()
+    it('from symlink to rename', function()
+        local sut = get_sut(migrate_settings)
+        assert.is_equal(2, count_configs(sut.list_enabled()))
+        sut.migrate('rename')
+        assert.is_equal('rename', require('modneo-confman.core').strategy().name())
+        assert.is_equal(2, count_configs(sut.list_enabled()))
+        assert.not_equal(0, #vim.fn.glob(vim.fs.joinpath(sut.config.get_plugin_dir(), '**/*.off'), false, true, true))
+        assert.is_equal(0, #vim.fn.glob(vim.fs.joinpath(sut.config.get_plugin_dir(), sut.options.link_dir, '*'), false, true, true))
+        sut.migrate('symlink')
+        assert.is_equal('symlink', require('modneo-confman.core').strategy().name())
+        assert.is_equal(2, count_configs(sut.list_enabled()))
+        assert.is_equal(0, #vim.fn.glob(vim.fs.joinpath(sut.config.get_plugin_dir(), '**/*.off'), false, true, true))
+        assert.not_equal(0, #vim.fn.glob(vim.fs.joinpath(sut.config.get_plugin_dir(), sut.options.link_dir, '*'), false, true, true))
+     end)
 end)
 
 -- vim: set et ts=4 sw=4 tw=0 filetype=lua:

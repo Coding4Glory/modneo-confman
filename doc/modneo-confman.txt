@@ -167,7 +167,15 @@ COMMANDS                      *modneo-confman-modneo-config-manager-commands-*
 :ConfmanInfo                           lists all enabled plugins (no category
                                        shown).
 
-Theplugin also supports the `checkhealth` command.
+                                                              *ConfmanMigrate*
+:ConfmanMigrate {strategy}             changes the configuration structure to
+                                       match the new strategy. This does also
+                                       affect the current session but you must
+                                       change your configuration for the next
+                                       restart or configuration might not be
+                                       loaded or overcrowded.
+
+The plugin also supports the `checkhealth` command.
 
 >
     :checkhealth confman

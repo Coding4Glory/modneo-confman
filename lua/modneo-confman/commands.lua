@@ -18,12 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 local render = require('modneo-confman.ui.render').init()
 
----@class Modneo.ConfmanCommands
+---@class Modneo.Confman.Commands
 local M = {}
 
 ---@type function
 ---adds the plugin commands
----@param core Modneo.ConfmanCore
+---@param core Modneo.Confman
 M.setup = function(core)
     local function complete_helper(argLead, cmdLine, cursorPos)
         local proto_cat = argLead:match('(.+)/.*')
@@ -64,12 +64,21 @@ M.setup = function(core)
         local all_configs = vim.tbl_deep_extend('keep', core.get_configs(), core.get_autoloaded())
         require'modneo-confman.ui.dialog'.show_plugins(all_configs)
     end, { desc = 'show Confman UI' })
+    vim.api.nvim_create_user_command('ConfmanMigrate', function(a)
+        if a.args ~= 'symlink' and a.args ~= 'rename' then
+            error("config can only be migrated to 'symlink' or 'rename'")
+        end
+        if core.strategy().name() == a.args then
+            vim.notify('config strategy already in place')
+        end
+        core.migrate(a.args)
+    end, { desc = 'migrate to other confman strategy', nargs = 1, complete = function() return { 'symlink', 'rename' } end })
 end
 
 ---removes the commands prefixed with Confman
 M.remove = function()
     if package.loaded['modneo-confman.commands'] == nil then return M end
-    for c, i in pairs(vim.api.nvim_get_commands({builtin = false})) do
+    for c, _ in pairs(vim.api.nvim_get_commands({builtin = false})) do
        if vim.startswith(c, 'Confman') then
            vim.api.nvim_del_user_command(c)
        end

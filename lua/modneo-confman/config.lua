@@ -19,11 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---@class Modneo.Confman.Config
 local M = {}
 
----@alias Modneo.ConfmanStrategy
+---@alias Modneo.Confman.Config.Strategy
 ---| 'symlink' uses symlinks for activation
 ---| 'rename' appends suffix to deactivate
 
-local strategies = { 'symlink', 'rename' }
+local supported_strategies = { 'symlink', 'rename' }
 
 ---@class Modneo.Confman.Options
 local defaults = {
@@ -36,7 +36,7 @@ local defaults = {
     ---considered. Possible options are 'symlink' and 'rename', defaults to
     ---'symlink' on linux and 'rename' on windows.
     ---Autoload directories like ftplugin will always use rename strategy
-    ---@type Modneo.ConfmanStrategy
+    ---@type Modneo.Confman.Config.Strategy
     strategy = vim.startswith((vim.uv or vim.loop).os_uname().sysname, 'Windows')
              and 'rename'
              or 'symlink',
@@ -80,19 +80,21 @@ local defaults = {
 }
 
 ---@type Modneo.Confman.Options
-M.options = defaults
+M.options = vim.tbl_deep_extend('keep', defaults, {})
 
 ---initializes the configuration
 ---will accumulate changes if called multiple times
 ---@param args Modneo.Confman.Options?
 M.setup = function(args)
     M.options = vim.tbl_deep_extend('force', M.options, args or {})
-    if not vim.tbl_contains(strategies, M.options.strategy) then
-        error('Strategy ' .. strategies ' .. is not supported!')
+    if not vim.tbl_contains(supported_strategies, M.options.strategy) then
+        error('Strategy ' .. M.options.strategy .. ' is not supported!')
     end
     return M.options
 end
 
+---gets the absolute path to the directory to search for plugin categories
+---@return string
 M.get_plugin_dir = function ()
     return vim.fs.joinpath(
         (M.options.config_root or vim.fn.stdpath('config')),
@@ -127,6 +129,7 @@ end
 
 ---gets a value indicating if the given folder
 ---is an autoexec folder
+---@return boolean
 M.is_autoload = function(folder)
     return vim.tbl_contains(autoload, folder)
 end

@@ -89,7 +89,7 @@ end
 ---@return table
 local function get_files(basedir, folder, pattern)
     local search_path = vim.fs.joinpath(basedir, folder or '*', pattern)
-    return vim.fn.glob(search_path, false, true, true)
+    return vim.fn.glob(search_path, false, true, false)
 end
 
 local C = {}
@@ -107,7 +107,7 @@ C.derive = function(dir, name, D)
 
     ---enables the item if disabled by name, bang is ignored by this strategy
     ---@param item Modneo.Confman.ConfItem
-    ---@param _ boolean
+    ---@param _ boolean?
     M.enable_conf = function(item, _)
         local new_name = get_enabled_name(item)
         if new_name == nil then
@@ -142,10 +142,10 @@ C.derive = function(dir, name, D)
 
     ---gets the first config file matching category and name
     ---@param category string the category of the config item to find
-    ---@param name string name of the module to find
+    ---@param confname string name of the module to find
     ---@return string?
-    M.find = function(category, name)
-        for p in get_file_patterns(name) do
+    M.find = function(category, confname)
+        for p in get_file_patterns(confname) do
             local found = get_files(M.basedir, category, p)
             if #found == 1 then
                 return found[1]
@@ -172,12 +172,20 @@ C.derive = function(dir, name, D)
     ---retrieves a list of files without the disabled suffix
     ---@return string[]
     M.get_enabled = function()
-        return get_files(M.basedir, nil, config.options.default_filter)
+        return get_files(M.basedir, '*', '*' .. config.options.default_filter)
     end
     M.basedir = dir
     M.name = function()
         return name
     end
+
+    ---removes the .off suffix after migration
+    ---@param item any
+    M.restore = function(item)
+        if item.enabled then return end
+        M.enable_conf(item)
+    end
+
     setmetatable(D, { __index = M })
     return D
 end

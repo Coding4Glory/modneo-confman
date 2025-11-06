@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
+---@class Modneo.Confman.Strategies.Autoload : Modneo.Confman.Core.Strategy
+
+---@return Modneo.Confman.Strategies.Autoload
 return require('modneo-confman.strategies.rename_base')
     .derive(vim.fn.stdpath'config', 'autoload', {})
 

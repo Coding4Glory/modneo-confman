@@ -25,11 +25,12 @@ local helper = require('modneo-confman.helper')
 ---@field get_configs fun(category:string?):string[]
 ---@field get_enabled fun():string[]
 ---@field find fun(category:string,name:string):string?
+---@field restore fun(item:Modneo.Confman.ConfItem)
 ---@field name fun():string
 
----@class Modneo.ConfmanCore
+---@class Modneo.Confman
 ---@field options Modneo.Confman.Options
----@field item_factory Modneo.ConfmanConfItemFactory
+---@field item_factory Modneo.Confman.ConfItem.Factory
 ---@field uv uv
 local M = {}
 
@@ -37,7 +38,7 @@ local M = {}
 M.options = {}
 
 ---gets a list with all plugin categories
----@return table
+---@return string[]
 M.get_categories = function()
     local r = {}
     for name, type in vim.fs.dir(M.config.get_plugin_dir()) do
@@ -48,10 +49,12 @@ M.get_categories = function()
     return r
 end
 
+---gets a list of plugin configs within a category
+---@return string[]
 M.get_category = function(cat)
     local r = {}
     for name, type in
-    vim.fs.dir(vim.fs.joinpath(M.config.get_plugin_dir(), cat))
+        vim.fs.dir(vim.fs.joinpath(M.config.get_plugin_dir(), cat))
     do
         if type == 'file' then
             table.insert(r, cat .. '/' .. name)
@@ -67,6 +70,9 @@ M.get_configs = function(category)
     return M.item_factory.convert(config_files)
 end
 
+---gets a list of config files in automatically loaded or detected
+---otherwise by neovim or builtin plugins like ftplugin
+---@return table<string,Modneo.Confman.ConfItem>
 M.get_autoloaded = function()
     local result = {}
     for dir in M.config.autoexec_iter() do
@@ -101,7 +107,8 @@ end
 M.list_available = function()
     local categorized = M.strategy().get_configs()
     local autoexec = M.autoload.get_configs()
-    return vim.tbl_deep_extend('error',
+    return vim.tbl_deep_extend(
+        'error',
         M.item_factory.convert(categorized),
         M.item_factory.convert(autoexec, M.autoload)
     )
@@ -112,7 +119,8 @@ end
 M.list_enabled = function()
     local categorized = M.strategy().get_enabled()
     local autoexec = M.autoload.get_enabled()
-    return vim.tbl_deep_extend('error',
+    return vim.tbl_deep_extend(
+        'error',
         M.item_factory.convert(categorized),
         M.item_factory.convert(autoexec, M.autoload)
     )
@@ -185,7 +193,6 @@ end
 
 ---disables the given plugin
 ---expects a category/name combination in args
----@type function
 ---@param opts vim.api.keyset.create_user_command.command_args
 M.disable_command = function(opts)
     for cat, mod in string.gmatch(opts.args, '([%._%-%w]+)[/\\]([%._%-%w]+)') do
@@ -193,25 +200,53 @@ M.disable_command = function(opts)
     end
 end
 
----@type function
 ---@return boolean true if the plugin is enabled, otherwise false
 M.enabled = function(cat, name)
     local found = M.strategy().find(cat, name)
     if found ~= nil then
         return M.item_factory.new(found).enabled
     end
+    return false
+end
+
+
+---Performs migration from one strategy to the other
+---@param to_strategy Modneo.Confman.Config.Strategy
+M.migrate = function(to_strategy)
+    local next = M.strategy(to_strategy)
+    print('migrating from ' .. M.strategy().name() .. ' to ' .. to_strategy)
+    for _, l in pairs(M.list_available()) do
+        for _, p in ipairs(l) do
+            local migitem = M.item_factory.new(p.realpath, next)
+            local was_enabled = p.enabled
+            M.strategy().restore(p)
+            if was_enabled then
+                migitem.enable()
+            elseif migitem.enabled then
+                migitem.disable()
+            end
+        end
+    end
+    M.options = require('modneo-confman.config').setup({ strategy = to_strategy })
+    M.item_factory = require('modneo-confman.confitem').setup()
+    vim.notify(
+        'Config migrated and session reinitialized, but settings must be changed manually',
+        vim.log.levels.WARN
+    )
 end
 
 ---call on require to apply settings
----@type function
----@return Modneo.ConfmanCore
+---@return Modneo.Confman
 M.init = function()
     M.config = require('modneo-confman.config')
     M.options = M.config.options
     M.item_factory = require('modneo-confman.confitem').setup()
     M.strategies = require('modneo-confman.strategies').init()
-    M.strategy = function()
-        return M.strategies[M.options.strategy]
+    ---gets the given strategy or the default strategy if ommited
+    ---@param which Modneo.Confman.Config.Strategy?
+    ---@return Modneo.Confman.Core.Strategy
+    M.strategy = function(which)
+        return M.strategies[which or M.options.strategy]
     end
     M.autoload = require('modneo-confman.strategies.autoload')
     M.uv = (vim.uv or vim.loop)

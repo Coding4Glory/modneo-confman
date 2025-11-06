@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 --]]
 
----@type table<Modneo.ConfmanStrategy, Modneo.Confman.Core.Strategy>
+---@type table<Modneo.Confman.Config.Strategy, Modneo.Confman.Core.Strategy>
 
 local M = {
     loaded = {}
