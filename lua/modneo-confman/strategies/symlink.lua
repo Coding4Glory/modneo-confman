@@ -85,10 +85,16 @@ local M = {
     end,
 
     disable_conf = function(item)
-        local link_file = get_link_name(item.category, item.name)
-        if vim.uv.fs_stat(link_file) ~= nil then
-            vim.uv.fs_unlink(link_file)
+        if item.abspath == item.realpath then
+            -- no symlink
+            return
         end
+
+        if vim.fs.basename(vim.fs.dirname(item.abspath)) ~= config.options.link_dir then
+            -- not in link dir
+            return
+        end
+        vim.uv.fs_unlink(item.abspath)
     end,
 
     restore = function (item)
@@ -123,7 +129,10 @@ local M = {
         local enabled = {}
         if category ~= config.options.link_dir then
             for _, l in pairs(get_files(config.options.link_dir, {})) do
-                enabled[vim.uv.fs_realpath(l)] = l
+                local realpath = vim.uv.fs_realpath(l)
+                if realpath ~= nil then
+                    enabled[realpath] = l
+                end
             end
         end
 

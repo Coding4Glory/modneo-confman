@@ -106,6 +106,9 @@ F.convert = function(plugins, strategy)
     -- simple table without categories
     for _, file in ipairs(plugins) do
         local item = F.new(file, strategy)
+        if item.category == nil then
+            item.category = "n/a"
+        end
         if result[item.category] == nil then
             result[item.category] = {}
         end
